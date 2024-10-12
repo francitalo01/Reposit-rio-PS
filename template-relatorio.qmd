@@ -1,34 +1,350 @@
 ---
-title: "Modelo Projeto - Quarto"
+title: "House of excellence"
 
 # Nome do documento PDF gerado
-output-file: titulo do projeto
+output-file: House of excellence
+
 ---
+
 ```{r}
 #| include: false
 source("rdocs/source/packages.R")
 ```
 
 ```{r}
-# Rodar apenas uma vez na vida!
-## Instalando o tinytex(pacote apenas)
-### CRAN version
-install.packages('tinytex')
+#| include: false
+# Pacotes ----
+pacman::p_load(tidyverse,readxl,lubridate,janitor,ggplot2,dplyr,tidytext)
 
-### or the development version on GitHub
-remotes::install_github('rstudio/tinytex')
+# Diretorio de trabalho
+setwd("C:/Users/Francisco Italo/Documents")
 
-## Baixando o tinytex
-library(tinytex)
-tinytex::install_tinytex()
+# Leitura dos dados
+sydney_2000<-read_xlsx("Olimpiadas_2000_2016.xlsx", sheet = 4) # 2000
+athina_2004<-read_xlsx("Olimpiadas_2000_2016.xlsx", sheet = 1) # 2004
+beijing_2008<-read_xlsx("Olimpiadas_2000_2016.xlsx", sheet = 5) # 2008
+london_2012<-read_xlsx("Olimpiadas_2000_2016.xlsx", sheet = 2)# 2012
+rio_2016<-read_xlsx("Olimpiadas_2000_2016.xlsx", sheet = 3) # 2016
+
+# Renomeando as variaveis
+sydney_2000 <- sydney_2000 %>% 
+  rename(c(Name = N4m3, Sex = S3x, Age = "4g3", Height = "H31ght", Weight = "W31ght", Team = T34m, Sport = Sp0rt, Event = "3v3nt", Medal = M3d4l))
+
+athina_2004 <- athina_2004 %>% 
+  rename(c(Name = Names, Sex = Gender, Age = Age, Height = "Height (cm)", Weight = "Weight (lbs)", Team = Team, Sport = Sport, Event = Event, Medal = Medal))
+
+beijing_2008 <- beijing_2008 %>% 
+  rename(c(Name = Names, Sex = Sex, Age = Age, Height = Height, Weight = Weight, Team = Team, Sport = Sport, Event = Event, Medal = Medal))
+
+london_2012 <- london_2012 %>% 
+  rename(c(Name = Name, Sex = Sex, Age = Age, Height = Height, Weight = Weight, Team = Team, Sport = Sport, Event = Event, Medal = Medal))
+
+rio_2016 <- rio_2016 %>% 
+  rename(c(Name = Name, Sex = Sex, Age = Age_year, Height = Height_cm, Weight = Weight_lbs, Team = Country, Sport = Sport, Event = Event, Medal = Medal))
+
+# Transformando os dados ----
+
+# Convertando lbs para kg
+sydney_2000$Weight <- sydney_2000$Weight * 0.453592
+athina_2004$Weight <- athina_2004$Weight * 0.453592
+beijing_2008$Weight <- beijing_2008$Weight * 0.453592
+london_2012$Weight <- london_2012$Weight * 0.453592
+rio_2016$Weight <- rio_2016$Weight * 0.453592
+
+# Altura cm para m
+
+sydney_2000$Height <- sydney_2000$Height / 100
+athina_2004$Height <- athina_2004$Height / 100
+beijing_2008$Height <- beijing_2008$Height / 100
+london_2012$Height <- london_2012$Height / 100
+rio_2016$Height <- rio_2016$Height / 100
+
+# Sexo
+sydney_2000 %>% distinct(Sex)# elementos da coluna sem duplicatas
+sydney_2000$Sex <- as.factor(sydney_2000$Sex)
+
+athina_2004 %>% distinct(Sex)# elementos da coluna sem duplicatas
+athina_2004$Sex <- as.factor(athina_2004$Sex)
+
+beijing_2008 %>% distinct(Sex)# elementos da coluna sem duplicatas
+beijing_2008$Sex <- as.factor(beijing_2008$Sex)
+
+london_2012 %>% distinct(Sex)# elementos da coluna sem duplicatas
+london_2012$Sex <- as.factor(london_2012$Sex)
+
+rio_2016 %>% distinct(Sex)# elementos da coluna sem duplicatas
+rio_2016$Sex <- as.factor(rio_2016$Sex)
+
+# Sedes das olimpiadas
+sydney_2000 <- sydney_2000 %>% mutate(Olimpiada = "Sydney")
+athina_2004 <- athina_2004 %>% mutate(Olimpiada = "Athina")
+beijing_2008 <- beijing_2008 %>% mutate(Olimpiada = "Beijing")
+london_2012 <- london_2012 %>% mutate(Olimpiada = "London")
+rio_2016 <- rio_2016 %>% mutate(Olimpiada = "Rio")
+
+# Juntando os dados
+
+olimpiadas <- rbind(sydney_2000,athina_2004,beijing_2008,london_2012,rio_2016)
+
+
+# Tema da Estat
+cores_estat <- c("#A11D21", "#003366", "#CC9900", "#663333", "#FF6600", "#CC9966", "#999966", "#006606", "#008091", "#041835", "#666666")
+
+theme_estat <- function(...) {
+  theme <- ggplot2::theme_bw() +
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(colour = "black", size = 12),
+      axis.title.x = ggplot2::element_text(colour = "black", size = 12),
+      axis.text = ggplot2::element_text(colour = "black", size = 9.5),
+      panel.border = ggplot2::element_blank(),
+      axis.line = ggplot2::element_line(colour = "black"),
+      legend.position = "top",
+      ...
+    )
+  
+  return(
+    list(
+      theme,
+      scale_fill_manual(values = cores_estat),
+      scale_colour_manual(values = cores_estat)
+    )
+  )
+}
+
 ```
-
-
 
 # Introdução
 
+O projeto tem como objetivo auxiliar João Neves, proprietário da academia de alta performance House of Excellence, na otimização do desempenho de seus atletas de elite, com base em análises estatísticas de suas participações nas edições dos Jogos Olímpicos de 2000 a 2016. O foco das análises é identificar padrões de desempenho, características físicas e fatores relacionados às conquistas de medalhas, oferecendo insights valiosos para melhorar a preparação e a performance futura dos atletas.
+
+Segundo parágrafo: detalhar quais são as análises que serão feitas. TODOS OS TIPOS DE ANÁLISES, se é análise descritiva , teste de hipóteses, regressão. Descrever um pouco sobre o banco de dados( quantidade de variáveis, tipos de variáveis, etc)..
+
+As análises foram realizadas utilizando o software R, versão 4.4.1, com pacotes especializados para manipulação de dados, visualização gráfica e modelagem estatística.
+
+
 # Referencial Teórico
 
-# Análises
+## Média
+
+A média é a soma das observações dividida pelo número total delas, dada pela fórmula:
+
+$$\bar{X}=\frac{\sum\limits_{i=1}^{n}X_i}{n}$$
+
+Com:
+
+-   $i = 1, \, 2, \, ..., \, n$
+
+-   $n =$ número total de observações
+
+## Mediana
+
+Sejam as $n$ observações de um conjunto de dados $X=X_{(1)},X_{(2)},\ldots, X_{(n)}$ de determinada variável ordenadas de forma crescente. A mediana do conjunto de dados $X$ é o valor que deixa metade das observações abaixo dela e metade dos dados acima.
+
+Com isso, pode-se calcular a mediana da seguinte forma:
+
+$$
+med(X) =
+    \begin{cases}
+         X_{\frac{n+1}{2}}, \textrm{para n ímpar} \\
+         \frac{X_{\frac{n}{2}}+X_{\frac{n}{2} + 1}}{2}, \textrm{para n par} \\
+    \end{cases}
+$$
+
+## Quartis
+
+Os quartis são separatrizes que dividem o conjunto de dados em quatro partes iguais. O primeiro quartil (ou inferior) delimita os 25% menores valores, o segundo representa a mediana, e o terceiro delimita os 25% maiores valores. Inicialmente deve-se calcular a posição do quartil:
+
+-   Posição do primeiro quartil $P_1$: $$P_1=\frac{n+1}{4}$$
+
+-   Posição da mediana (segundo quartil) $P_2$: $$P_2 = \frac{n+1}{2}$$
+
+-   Posição do terceiro quartil $P_3$: $$P_3=\frac{3 \times (n+1)}{4}$$
+
+Com $n$ sendo o tamanho da amostra. Dessa forma, $X_{\left( P_i \right)}$ é o valor do $i$-ésimo quartil, onde $X_{\left( j \right)}$ representa a $j$-ésima observação dos dados ordenados.
+
+Se o cálculo da posição resultar em uma fração, deve-se fazer a média entre o valor que está na posição do inteiro anterior e do seguinte ao da posição.
+
+## Variância
+
+A variância é uma medida que avalia o quanto os dados estão dispersos em relação à média, em uma escala ao quadrado da escala dos dados.
+
+### Variância Populacional
+
+Para uma população, a variância é dada por:
+
+$$\sigma^2=\frac{\sum\limits_{i=1}^{N}\left(X_i - \mu\right)^2}{N}$$
+
+Com:
+
+-   $X_i =$ $i$-ésima observação da população
+
+-   $\mu =$ média populacional
+
+-   $N =$ tamanho da população
+
+### Variância Amostral
+
+Para uma amostra, a variância é dada por:
+
+$$S^2=\frac{\sum\limits_{i=1}^{n}\left(X_i - \bar{X}\right)^2}{n-1}$$
+
+Com:
+
+-   $X_i =$ i-ésima observação da amostra
+
+-   $\bar{X} =$ média amostral
+
+-   $n =$ tamanho da amostra
+
+## Desvio Padrão
+
+O desvio padrão é a raiz quadrada da variância. Ele avalia o quanto os dados estão dispersos em relação à média.
+
+### Desvio Padrão Populacional
+
+Para uma população, o desvio padrão é dado por:
+
+$$\sigma=\sqrt{\frac{\sum\limits_{i=1}^{N}\left(X_i - \mu\right)^2}{N}}$$
+
+Com:
+
+-   $X_i =$ i-ésima observação da população
+
+-   $\mu =$ média populacional
+
+-   $N =$ tamanho da população
+
+### Desvio Padrão Amostral
+
+Para uma amostra, o desvio padrão é dado por:
+
+$$S=\sqrt{\frac{\sum\limits_{i=1}^{n}\left(X_i - \bar{X}\right)^2}{n-1}}$$
+
+Com:
+
+-   $X_i =$ i-ésima observação da amostra
+
+-   $\bar{X} =$ média amostral
+
+-   $n =$ tamanho da amostra
+
+## Coeficiente de Variação
+
+O coeficiente de variação fornece a dispersão dos dados em relação à média. Quanto menor for o seu valor, mais homogêneos serão os dados. O coeficiente de variação é considerado baixo (apontando um conjunto de dados homogêneo) quando for menor ou igual a 25%. Ele é dado pela fórmula:
+
+$$C_V=\frac{S}{\bar{X}}\times 100$$
+
+Com:
+
+-   $S =$ desvio padrão amostral
+
+-   $\bar{X} =$ média amostral
+
+## Coeficiente de Assimetria
+
+O coeficiente de assimetria quantifica a simetria dos dados. Um valor positivo indica que os dados estão concentrados à esquerda em sua função de distribuição, enquanto um valor negativo indica maior concentração à direita. A fórmula é:
+
+$$C_{Assimetria} = \frac{1}{n}\times\sum\limits_{i=1}^{n} \left(\frac{X_i - \bar{X}}{S}\right)^3 $$
+
+Com:
+
+-   $X_i =$ i-ésima observação da amostra
+
+-   $\bar{X} =$ média amostral
+
+-   $S=$ desvio padrão amostral
+
+-   $n=$ tamanho da amostra
+
+## Curtose
+
+O coeficiente de curtose quantifica o achatamento da função de distribuição em relação à distribuição Normal e é dado por:
+
+$$Curtose = \frac{1}{n}\times\sum\limits_{i=1}^{n}\left(\frac{ X_i-\bar{X} }{S} \right)^4 - 3$$
+
+Com:
+
+-   $X_i =$ i-ésima observação da amostra
+
+-   $\bar{X} =$ média amostral
+
+-   $S =$ desvio padrão amostral
+
+-   $n =$ tamanho da amostra
+
+Uma distribuição é dita mesocúrtica quando possui curtose nula. Quando a curtose é positiva, a distribuição é leptocúrtica (mais afunilada e com pico). Valores negativos indicam uma distribuição platicúrtica (mais achatada).
+
+## Boxplot
+
+O boxplot é uma representação gráfica na qual se pode perceber de forma mais clara como os dados estão distribuídos. A figura abaixo ilustra um exemplo de boxplot.
+
+![Exemplo de boxplot](images/box_uni.png){fig-align="center"}
+
+A porção inferior do retângulo diz respeito ao primeiro quartil, enquanto a superior indica o terceiro quartil. Já o traço no interior do retângulo representa a mediana do conjunto de dados, ou seja, o valor em que o conjunto de dados é dividido em dois subconjuntos de mesmo tamanho. A média é representada pelo losango branco e os pontos são *outliers*. Os *outliers* são valores discrepantes da série de dados, ou seja, valores que não demonstram a realidade de um conjunto de dados.
+
+## Histograma
+
+O histograma é uma representação gráfica utilizada para a visualização da distribuição dos dados e pode ser construído por valores absolutos, frequência relativa ou densidade. A figura abaixo ilustra um exemplo de histograma.
+
+![Exemplo de histograma](images/hist_uni.png){fig-align="center"}
+
+## Gráfico de Dispersão
+
+O gráfico de dispersão é uma representação gráfica utilizada para ilustrar o comportamento conjunto de duas variáveis quantitativas. A figura abaixo ilustra um exemplo de gráfico de dispersão, onde cada ponto representa uma observação do banco de dados.
+
+![Exemplo de Gráfico de Dispersão](images/disp_uni.png){fig-align="center"}
+
+## Tipos de Variáveis
+
+### Qualitativas
+
+As variáveis qualitativas são as variáveis não numéricas, que representam categorias ou características da população. Estas subdividem-se em:
+
+-   **Nominais**: quando não existe uma ordem entre as categorias da variável (exemplos: sexo, cor dos olhos, fumante ou não, etc)
+-   **Ordinais**: quando existe uma ordem entre as categorias da variável (exemplos: nível de escolaridade, mês, estágio de doença, etc)
+
+### Quantitativas
+
+As variáveis quantitativas são as variáveis numéricas, que representam características numéricas da população, ou seja, quantidades. Estas subdividem-se em:
+
+-   **Discretas**: quando os possíveis valores são enumeráveis (exemplos: número de filhos, número de cigarros fumados, etc)
+-   **Contínuas**: quando os possíveis valores são resultado de medições (exemplos: massa, altura, tempo, etc)
+
+
+# Top 5 países com maior número de mulheres medalhistas
+
+```{r fig.cap="Gráfico de barras dos 5 países com maior número de mulheres medalhistas", fig.align="center"}
+# 1. Top 5 países com maior número de mulheres medalhistas (13/10)----
+# O cliente gostaria de entender quais países possuem um maior número de mulheres que conquistaram medalhas, em ordem do país com maior número de mulheres medalhistas para o país com menor número.
+
+# Total (Tabela pronta, mas falta colocar a padronização da Estat)
+top_5_total <- olimpiadas %>%
+  filter(Sex == "F", !is.na(Medal)) %>% 
+  group_by(Team) %>%
+  summarise(total_medalhistas = n(), .groups = 'drop') %>% 
+  arrange(desc(total_medalhistas)) %>%
+  slice_head(n = 5) %>%
+  mutate (freq = round(100*(total_medalhistas/sum(total_medalhistas)), 2))  %>%
+  mutate(freq = gsub("\\.", ",", freq) %>% 
+           paste("%", sep = ""),label = str_c(total_medalhistas, " (", freq, ")") 
+         %>% str_squish())
+
+
+ggplot(top_5_total)+
+  aes(x = reorder(Team, -total_medalhistas), y = total_medalhistas, label = label) +
+  geom_bar(stat = "identity", fill = c("#A11D21", "#003366", "#CC9900", "#663333", "#FF6600"), width = 0.7) +
+  geom_text(aes(label = label), position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
+  labs(x = "País", y = "Número de Mulheres Medalhistas", title = "Top 5 Países com Maior Número de Mulheres Medalhistas") +
+  ylim(NA,800)+
+  theme_estat()
+```
+
+Entre os anos de 2000 a 2016, os Estados Unidos se destacaram como o país com o maior número de mulheres medalhistas nas Olimpíadas, conquistando 741 medalhas, o que representa 34,48% do total. Em segundo lugar, a Rússia registrou 416 medalhas femininas, correspondendo a 19,36% do total. A China ocupa a terceira posição com 384 medalhas, o que equivale a 17,87% do total. A Austrália, com 340 medalhas (15,82%), é o quarto colocado. Por fim, a Alemanha completa o top 5 com 268 medalhas, representando 12,47% do total. 
+
+# Valor IMC por esporte, estes sendo, ginástica, futebol, judô, atletismo e badminton
+
+# Top 3 medalhistas gerais por quantidade de cada tipo de medalha
+
+# Variação Peso por Altura
 
 # Conclusões
