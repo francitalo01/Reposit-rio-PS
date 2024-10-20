@@ -3,7 +3,6 @@ title: "House of excellence"
 
 # Nome do documento PDF gerado
 output-file: House of excellence
-
 ---
 
 ```{r}
@@ -14,7 +13,7 @@ source("rdocs/source/packages.R")
 ```{r}
 #| include: false
 # Pacotes ----
-pacman::p_load(tidyverse,readxl,lubridate,janitor,ggplot2,dplyr,tidytext)
+pacman::p_load(tidyverse,readxl,lubridate,janitor,ggplot2,dplyr,tidytext,knitr,car)
 
 # Diretorio de trabalho
 setwd("C:/Users/Francisco Italo/Documents")
@@ -60,19 +59,19 @@ london_2012$Height <- london_2012$Height / 100
 rio_2016$Height <- rio_2016$Height / 100
 
 # Sexo
-sydney_2000 %>% distinct(Sex)# elementos da coluna sem duplicatas
+sydney_2000 %>% distinct(Sex)
 sydney_2000$Sex <- as.factor(sydney_2000$Sex)
 
-athina_2004 %>% distinct(Sex)# elementos da coluna sem duplicatas
+athina_2004 %>% distinct(Sex)
 athina_2004$Sex <- as.factor(athina_2004$Sex)
 
-beijing_2008 %>% distinct(Sex)# elementos da coluna sem duplicatas
+beijing_2008 %>% distinct(Sex)
 beijing_2008$Sex <- as.factor(beijing_2008$Sex)
 
-london_2012 %>% distinct(Sex)# elementos da coluna sem duplicatas
+london_2012 %>% distinct(Sex)
 london_2012$Sex <- as.factor(london_2012$Sex)
 
-rio_2016 %>% distinct(Sex)# elementos da coluna sem duplicatas
+rio_2016 %>% distinct(Sex)
 rio_2016$Sex <- as.factor(rio_2016$Sex)
 
 # Sedes das olimpiadas
@@ -86,6 +85,83 @@ rio_2016 <- rio_2016 %>% mutate(Olimpiada = "Rio")
 
 olimpiadas <- rbind(sydney_2000,athina_2004,beijing_2008,london_2012,rio_2016)
 
+sydney_2000 <- sydney_2000 %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
+
+athina_2004 <- athina_2004 %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
+
+beijing_2008 <- beijing_2008 %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
+
+london_2012 <- london_2012 %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
+
+rio_2016 <- rio_2016 %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
+
+olimpiadas <- olimpiadas %>%
+  rename(
+    Nome = Name,
+    Sexo = Sex,
+    Idade = Age,
+    Altura = Height,
+    Peso = Weight,
+    Time = Team,
+    Esporte = Sport,
+    Evento = Event,
+    Medalha = Medal,
+    Olimpiada = Olimpiada)
 
 # Tema da Estat
 cores_estat <- c("#A11D21", "#003366", "#CC9900", "#663333", "#FF6600", "#CC9966", "#999966", "#006606", "#008091", "#041835", "#666666")
@@ -121,8 +197,29 @@ Segundo parágrafo: detalhar quais são as análises que serão feitas. TODOS OS
 
 As análises foram realizadas utilizando o software R, versão 4.4.1, com pacotes especializados para manipulação de dados, visualização gráfica e modelagem estatística.
 
-
 # Referencial Teórico
+
+## Frequência Relativa
+
+A frequência relativa é utilizada para a comparação entre classes de uma variável categórica com $c$ categorias, ou para comparar uma mesma categoria em diferentes estudos.
+
+A frequência relativa da categoria $j$ é dada por:
+
+$$
+f_j=\frac{n_j}{n}
+$$
+
+Com:
+
+-   $j = 1, \, ..., \, c$
+
+-   $n_j =$ número de observações da categoria $j$
+
+-   $n =$ número total de observações
+
+Geralmente, a frequência relativa é utilizada em porcentagem, dada por:
+
+$$100 \times f_j$$
 
 ## Média
 
@@ -310,8 +407,194 @@ As variáveis quantitativas são as variáveis numéricas, que representam carac
 -   **Discretas**: quando os possíveis valores são enumeráveis (exemplos: número de filhos, número de cigarros fumados, etc)
 -   **Contínuas**: quando os possíveis valores são resultado de medições (exemplos: massa, altura, tempo, etc)
 
+## Teste de Normalidade de Shapiro-Wilk
 
-# Top 5 países com maior número de mulheres medalhistas
+O **Teste de Shapiro-Wilk** é utilizado para verificar a aderência de uma variável quantitativa ao modelo da Distribuição Normal, sendo mais recomendado para amostras pequenas. A suposição de normalidade é importante para a determinação do teste a ser utilizado. As hipóteses a serem testadas são:
+
+\hipoteses{A variável segue uma distribuição Normal}{A variável segue outro modelo}
+
+A amostra deve ser ordenada de forma crescente para que seja possível obter as estatísticas de ordem. A estatística do teste é dada por:
+
+$$ W = \frac{1}{D} \left[ \sum_{i=1}^{k} a_{i} \left(X_{(n-i+1)} - X_{(i)}\right) \right] $$
+
+Com:
+
+-   $K$ aproximadamente $\displaystyle\frac{n}{2}$
+
+-   $X_{\left(i\right)} =$ estatística de ordem *i*
+
+-   $D = \displaystyle \sum_{i=1}^{n}(X_{i} - \bar{X})^2$, em que $\bar{X}$ é a média amostral
+
+-   \$a_i = \$ constantes que apresentam valores tabelados
+
+## Teste de Homogeneidade de Variância de Levene
+
+O **teste de Levene** consiste em fazer uma transformação nos dados originais. Para essa transformação, utiliza-se a técnica estatística de análise de variância (ANOVA). Diferentemente de outros testes de homogeneidade de variância, o teste de Levene é não-paramétrico, ou seja, não possui pressuposto de normalidade.
+
+A transformação dos dados é dada por:
+
+$$ z_{ij} = |x_{ij} - med(x_i)| $$
+
+para $i=1,2,...,k$ e $j=1,2,...,n_i$ com $k$ sendo o número de subgrupos, em que:
+
+-   \$med(x_i) = \$ mediana do subgrupo $i$
+-   $z_{ij} =$ representa a transformação nos dados
+-   \$n_i = \$ tamanho da amostra do subgrupo $i$
+
+Com isso, tem-se a estatística do teste:
+
+\begin{equation}
+F^* = \frac{\displaystyle \sum_{i=1}^{k}\frac{n_i(\bar{z}_{i.} - \bar{z}_{..})^2}{(k-1)}}{\frac{\displaystyle \sum_{i=1}^{k}\displaystyle \sum_{j=1}^{n_i}(z_{ij}-\bar{z}_{i.}^2)}{\displaystyle \sum_{i=1}^{k}(n_i-1)}} \nonumber
+\end{equation}
+
+Sendo que:
+
+$$ \bar{z}_{i.} = \sum_{i=1}^{k}\frac{z_{ij}}{n_{i}} $$
+
+$$ \bar{z}_{..} = \frac{\displaystyle \sum_{i=1}^{k}\displaystyle\sum_{j=1}^{n_i}z_{ij}}{\displaystyle\sum_{i=1}^{k}n_i} $$
+
+Sabe-se que $F^* \approx F(k,N-k-1)$.
+
+Após a transformação dos dados originais, aplica-se o teste da ANOVA nos dados transformados. Assim, testa-se as seguintes hipóteses:
+
+\hipoteses{Todas as populações possuem mesma variância}{Ao menos uma população possui variância diferente das demais}
+
+Sob $H_0$, rejeita-se a hipótese nula de igualdade de variâncias a um nível $\alpha$ de significância se a estatística do teste $F^*$ assumir valor superior ao quantil crítico respectivo da distribuição $F(k,N-k-1)$.
+
+## Análise de Variância (ANOVA)
+
+A Análise de Variância, mais conhecida por ANOVA, consiste em um teste de hipótese, em que é testado se as médias dos tratamentos (ou grupos) são iguais. Os dados são descritos pelo seguinte modelo:
+
+$$
+y_{ij} = \mu + \alpha_i + e_{ij}, \quad i=1,…,a \quad e \quad j=1,…,N
+$$
+
+Em que:
+
+-   $i$ é o número de tratamentos
+
+-   $j$ é o número de observações
+
+-   $y_{ij}$ é a j-ésima observação do i-ésimo tratamento
+
+No modelo, $\mu$ é a média geral dos dados e $\alpha_i$ é o efeito do tratamento $i$ na variável resposta. Já $e_{ij}$ é a variável aleatória correspondente ao erro. Supõe-se que tal variável tem distribuição de probabilidade Normal com média zero e variância $\sigma^2$. Mais precisamente, $e_{ij} \sim N(0,\sigma^2)$.
+
+A variabilidade total pode ser decomposta na variabilidade devida aos diferentes tratamentos somada à variabilidade dentro de cada tratamento:
+
+\begin{align*}
+\text{Soma de Quadrados Total (SQTOT)} &= \text{Soma de Quadrados de Tratamento (SQTRAT)} \\
+&+ \text{Soma de Quadrados de Resíduos (SQRES)}
+\end{align*}
+
+Sendo o estudo não balanceado, ou seja, quando os tratamentos possuem tamanhos de amostra distintos:
+
+$$
+SQTOT = \sum\limits_{i=1}^a \sum\limits_{j=1}^{n_i} y_{ij}^2 - \frac{y_{..}^2}{N}
+$$
+
+$$
+SQTRAT = \sum\limits_{i=1}^a \frac{y_{i.}^2}{n_i} - \frac{y_{..}^2}{N}
+$$
+
+$$
+SQRES = \sum\limits_{i=1}^a \sum\limits_{j=1}^{n_i} y_{ij}^2 - \sum\limits_{i=1}^a \frac{y_{i.}^2}{n_i}
+$$
+
+Em que:
+
+-   $n_i$ é o número de observações do i-ésimo tratamento
+
+-   $N$ é o número total de observações
+
+-   $y_{..} = \sum\limits_{i=1}^a \sum\limits_{j=1}^{n_i} y_{ij}$
+
+-   $y_{i.} = \sum\limits_{j=1}^{n_i} y_{ij}$
+
+As hipóteses do teste são:
+
+\hipoteses{As médias dos \textit{a} tratamentos são iguais}{Existe pelo menos um par de médias diferente}
+
+A estatística do teste é composta pelo Quadrado Médio de Tratamento (QMTRAT) e Quadrado Médio de Resíduos (QMRES), sendo a definição de Quadrado Médio a divisão da Soma de Quadrados pelos seus graus de liberdade. Por conta da suposição de Normalidade dos erros no modelo, a estatística do teste, $F$, tem distribuição F de Snedecor com $(a - 1)$ e $(\sum_{i=1}^a n_i - a)$ graus de liberdade.
+
+$$
+F_{obs} = \frac{QMTRAT}{QMRES} = \frac{\frac{SQTRAT}{(a-1)}}{\frac{SQRES}{(\sum_{i=1}^a n_i - a)}}
+$$
+
+A hipótese nula é rejeitada caso o p-valor seja menor que o nível de significância pré-fixado. A Tabela $\ref{tab:anova}$ abaixo resume as informações anteriores:
+
+\begin{table}[H]
+\centering
+\caption{Tabela de Análise de Variância}
+\begin{tabular}{c | c c c c c}
+    \toprule 
+    Fonte de & Graus de  & Soma de  & Quadrado  & \multirow{2}{*}{Estatística F} & \multirow{2}{*}{P-valor} \\ 
+    Variação & Liberdade & Quadrados & Médio & & \\
+    \midrule
+    Tratamento & $(a-1)$ & SQTRAT & $\frac{SQTRAT}{(a-1)}$ & $\frac{QMTRAT}{QMRES}$ & $P(F>F_{obs})$ \\[5pt]
+    Resíduos & $(\sum_{i=1}^a n_i - a)$ & SQRES & $\frac{SQRES}{(\sum_{i=1}^a n_i - a)}$ & & \\ 
+    \midrule
+    Total & $(\sum_{i=1}^a n_i - 1)$ & SQTOT & & & \\ 
+    \bottomrule
+\end{tabular}
+\label{tab:anova}
+\end{table}
+
+## Teste de Tukey HSD
+
+Após a rejeição da hipótese nula da Análise de Variância (ANOVA), deve-se identificar quais médias diferem. Para isso, é utilizado o teste de Tukey HSD, tendo como objetivo comparar as médias duas a duas. Diferentemente de outros testes, ele controle o erro global do teste. Ou seja, a probabilidade de se cometer pelo menos um erro do tipo I é igual a $\alpha$. As hipóteses são:
+
+\hipoteses{$\mu_i=\mu_j$}{$\mu_i \neq \mu_j$}
+
+A estatística do teste é dada por:
+
+$$T = Tukey_{(\alpha; \: a; \: N-a)}\sqrt{\left(\frac{1}{n}+\frac{1}{m}\right)\frac{QM_{res}}{2}}$$
+
+Em que:
+
+-   $\alpha$ é o nível de significância global do teste
+-   $a$ é o número de tratamentos/grupos
+-   $N$ é o número total de observações
+-   $Tukey_{(\alpha; \: a; \: N-a)}$ é o quantil da distribuição de \textit{Tukey} com esses parâmetros
+-   $QM_{res}$ é o Quadrado Médio do Resíduo obtido da tabela de Análise de Variância
+-   $n$ é o número de observações do tratamento/grupo i
+-   $m$ é o número de observações do tratamento/grupo j
+
+Rejeita-se a hipótese nula caso o módulo da diferença entre as médias ($|\bar{y_i} - \bar{y_j}|$) seja maior ou igual a $T$. Caso contrário, não se pode afirmar que as médias diferem.
+
+## Teste de Kruskal-Wallis
+
+O teste de Kruskal-Wallis é utilizado para comparar dois ou mais grupos independentes sem supor nenhuma distribuição. É um método baseado na comparação de postos, os quais são atribuídos a cada observação de uma variável quantitativa após serem ordenadas.
+
+As hipóteses do teste de Kruskal-Wallis são formuladas da seguinte maneira:
+
+\hipoteses{Não existe diferença entre os grupos}{Pelo menos um grupo difere dos demais}
+
+A estatística do teste de Krukal-Waliis é definida da seguinte maneira:
+
+$$
+H_{Kruskal-Wallis}=
+    \displaystyle\frac{\displaystyle\left[ \frac{12}{n(n+1)} \sum_{i=1}^{k} \frac{R_i^2}{n_i} \right] - 3(n+1)}
+    {\displaystyle1- \left[ \frac{\displaystyle\sum_{j}^{}(t_j^3 - t_j)}{n^3 - n}\right]} 
+\approx \chi^2_{(k-1)}
+$$
+
+Com: - $k=$ número de grupos
+
+-   $R_i=$ soma dos postos do grupo i
+
+-   $n_i=$ número de elementos do grupo i
+
+-   $n=$ tamanho total da amostra
+
+-   $t_{j}=$ número de elementos no j-ésimo empate (se houver)
+
+Se o p-valor for menor que o nível de significância $\alpha$, rejeita-se a hipótese nula.
+
+# Análises
+
+## Top 5 países com maior número de mulheres medalhistas
+
+A análise, buscamos identificar os países que tiveram o maior número de mulheres medalhistas em Jogos Olímpicos de 2000 a 2016. Utilizou-se dados das edições de Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016, considerando as variáveis de sexo (feminino), país de origem das atletas (Team), e a presença de uma medalha (Medal). O objetivo principal foi compreender quais nações se destacaram em termos de conquistas femininas, utilizando como métricas o número total de medalhistas por país e a frequência relativa de cada país em relação ao total de mulheres medalhistas.
 
 ```{r fig.cap="Gráfico de barras dos 5 países com maior número de mulheres medalhistas", fig.align="center"}
 # 1. Top 5 países com maior número de mulheres medalhistas (13/10)----
@@ -319,8 +602,8 @@ As variáveis quantitativas são as variáveis numéricas, que representam carac
 
 # Total (Tabela pronta, mas falta colocar a padronização da Estat)
 top_5_total <- olimpiadas %>%
-  filter(Sex == "F", !is.na(Medal)) %>% 
-  group_by(Team) %>%
+  filter(Sexo == "F", !is.na(Medalha)) %>% 
+  group_by(Time) %>%
   summarise(total_medalhistas = n(), .groups = 'drop') %>% 
   arrange(desc(total_medalhistas)) %>%
   slice_head(n = 5) %>%
@@ -329,22 +612,221 @@ top_5_total <- olimpiadas %>%
            paste("%", sep = ""),label = str_c(total_medalhistas, " (", freq, ")") 
          %>% str_squish())
 
+traducoes <- c(
+  "United States" = "Estados Unidos",
+  "Russia" = "Rússia",
+  "China" = "China",
+  "Australia" = "Austrália",
+  "Germany" = "Alemanha"
+)
+
+top_5_total$Time <- traducoes[top_5_total$Time]
 
 ggplot(top_5_total)+
-  aes(x = reorder(Team, -total_medalhistas), y = total_medalhistas, label = label) +
-  geom_bar(stat = "identity", fill = c("#A11D21", "#003366", "#CC9900", "#663333", "#FF6600"), width = 0.7) +
+  aes(x = reorder(Time, -total_medalhistas), y = total_medalhistas, label = label) +
+  geom_bar(stat = "identity", fill = c("#A11D21"), width = 0.7) +
   geom_text(aes(label = label), position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
-  labs(x = "País", y = "Número de Mulheres Medalhistas", title = "Top 5 Países com Maior Número de Mulheres Medalhistas") +
+  labs(x = "País", y = "Número de Mulheres Medalhistas") +
   ylim(NA,800)+
   theme_estat()
 ```
 
-Entre os anos de 2000 a 2016, os Estados Unidos se destacaram como o país com o maior número de mulheres medalhistas nas Olimpíadas, conquistando 741 medalhas, o que representa 34,48% do total. Em segundo lugar, a Rússia registrou 416 medalhas femininas, correspondendo a 19,36% do total. A China ocupa a terceira posição com 384 medalhas, o que equivale a 17,87% do total. A Austrália, com 340 medalhas (15,82%), é o quarto colocado. Por fim, a Alemanha completa o top 5 com 268 medalhas, representando 12,47% do total. 
+Entre os anos de 2000 a 2016, os Estados Unidos se destacaram como o país com o maior número de mulheres medalhistas nas Olimpíadas, conquistando 741 medalhas, o que representa 34,48% do total. Em segundo lugar, a Rússia registrou 416 medalhas femininas, correspondendo a 19,36% do total. A China ocupa a terceira posição com 384 medalhas, o que equivale a 17,87% do total. A Austrália, com 340 medalhas (15,82%), é o quarto colocado. Por fim, a Alemanha completa o top 5 com 268 medalhas, representando 12,47% do total.
 
-# Valor IMC por esporte, estes sendo, ginástica, futebol, judô, atletismo e badminton
+## Valor IMC por esporte, estes sendo, ginástica, futebol, judô, atletismo e badminton
 
-# Top 3 medalhistas gerais por quantidade de cada tipo de medalha
+Nesta análise, busca-se comparar o Índice de Massa Corporal (IMC) de atletas olímpicos que competiram em diferentes modalidades esportivas, especificamente Ginástica, Judô, Atletismo e Badminton, em cinco edições dos Jogos Olímpicos: Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016. O objetivo é identificar se há diferenças significativas nos valores de IMC entre esses esportes, bem como entender quais esportes tendem a ter IMCs mais altos ou mais baixos.
 
-# Variação Peso por Altura
+```{r}
+# 2 Valor IMC por esporte, estes sendo, ginástica, futebol, judô, atletismo e badminton (20/10) ----
+
+# O cliente deseja comparar os valores do Índice de Massa Corporal (IMC) entre atletas de
+# diferentes esportes, especificamente ginástica, judô, atletismo e badminton, para entender a
+# variação entre eles e identificar se algum esporte tende a ter IMCs geralmente menores,
+# maiores ou se não há diferença significativa. Para isso, é necessário calcular o IMC de cada
+# atleta utilizando a fórmula peso (kg) / altura (m)2 e, em seguida, analisar os resultados para cada
+# esporte selecionado, observando como os valores se comportam em relação aos esportes
+# mencionados.
+
+sydney_2000 <- sydney_2000 %>% 
+  mutate(IMC = Peso / (Altura^2))
+
+athina_2004 <- athina_2004 %>% 
+  mutate(IMC = Peso / (Altura^2))
+
+beijing_2008 <- beijing_2008 %>% 
+  mutate(IMC = Peso / (Altura^2))
+
+london_2012 <- london_2012 %>% 
+  mutate(IMC = Peso / (Altura^2))
+
+rio_2016 <- rio_2016 %>% 
+  mutate(IMC = Peso / (Altura^2))
+
+# Juntando os dados
+
+olimpiadas <- rbind(sydney_2000,athina_2004,beijing_2008,london_2012,rio_2016)
+
+traducoes_esportes <- c(
+  "Athletics" = "Atletismo",
+  "Badminton" = "Badminton",
+  "Gymnastics" = "Ginástica",
+  "Judo" = "Judô",
+  "Sailing" = "Vela",
+  "Wrestling" = "Luta",
+  "Rowing" = "Remo",
+  "Swimming" = "Natação",
+  "Taekwondo" = "Taekwondo",
+  "Diving" = "Saltos Ornamentais",
+  "Football" = "Futebol",
+  "Tennis" = "Tênis",
+  "Cycling" = "Ciclismo",
+  "Hockey" = "Hóquei",
+  "Weightlifting" = "Levantamento de Peso",
+  "Basketball" = "Basquete",
+  "Volleyball" = "Voleibol",
+  "Shooting" = "Tiro Esportivo",
+  "Synchronized Swimming" = "Nado Sincronizado",
+  "Boxing" = "Boxe",
+  "Table Tennis" = "Tênis de Mesa",
+  "Baseball" = "Beisebol",
+  "Handball" = "Handebol",
+  "Fencing" = "Esgrima",
+  "Canoeing" = "Canoagem",
+  "Water Polo" = "Polo Aquático",
+  "Beach Volleyball" = "Vôlei de Praia",
+  "Softball" = "Softbol",
+  "Rhythmic Gymnastics" = "Ginástica Rítmica",
+  "Archery" = "Tiro com Arco",
+  "Equestrianism" = "Hipismo",
+  "Modern Pentathlon" = "Pentatlo Moderno",
+  "Triathlon" = "Triatlo",
+  "Trampolining" = "Ginástica de Trampolim",
+  "Rugby Sevens" = "Rúgbi de Sete",
+  "Golf" = "Golfe"
+)
+
+olimpiadas <- olimpiadas %>% 
+  mutate(Esporte = dplyr::recode(Esporte, !!!traducoes_esportes))
+
+olimpiadas_IMC <- olimpiadas %>%
+  filter(Esporte %in% c("Badminton", "Atletismo", "Judô", "Ginástica"))
+```
+
+```{r}
+estatisticas_IMC <- olimpiadas_IMC %>%
+  group_by(Esporte) %>%
+  summarise(Tamanho_amostral = n(),
+            Média = mean(IMC, na.rm = TRUE),
+            Mediana = median(IMC, na.rm = TRUE),
+            Desvio_padrão = sd(IMC, na.rm = TRUE),
+            Mín = min(IMC, na.rm = TRUE),
+            Máx = max(IMC, na.rm = TRUE))
+knitr::kable(estatisticas_IMC, caption = "Tabela das estatísticas descritivas por esporte")
+```
+
+No Atletismo, a média do IMC é de 22,0, com uma mediana de 21,2 e um desvio padrão de 3,77. Isso sugere que os valores de IMC dos atletas são relativamente próximos, mas há alguns casos extremos, como evidenciado pelo valor máximo de 44,4.
+
+Os atletas de Badminton apresentam uma média de IMC ligeiramente maior, de 22,4, e uma mediana de 22,3, com um desvio padrão baixo de 1,78. Isso indica uma menor variabilidade nos valores de IMC, com a maioria dos atletas concentrados em torno da média.
+
+Na Ginástica, o IMC médio é de 21,1, enquanto a mediana é de 21,4, e o desvio padrão é de 2,30, indicando também uma baixa variabilidade e uma distribuição mais homogênea dos valores de IMC entre os atletas.
+
+Já os atletas de Judô apresentam a maior média de IMC, de 25,6, com uma mediana de 24,4 e um desvio padrão mais elevado, de 5,12. Esse maior desvio padrão sugere uma variabilidade significativa no IMC dos judocas, com um valor máximo de 63,9, indicando que alguns atletas possuem um IMC substancialmente maior, o que pode estar relacionado à necessidade de uma maior massa corporal nesse esporte de combate.
+
+De acordo com os dados tem se os judocas tendem a ter um IMC mais elevados, enquanto os ginastas apresentam os menores. As diferenças na variabilidade entre os grupos refletem os distintos requisitos físicos de cada esporte, como força e agilidade.
+
+```{r fig.cap="Boxplot da Comparação do IMC entre Esportes", fig.align="center"}
+
+ggplot(olimpiadas_IMC, aes(x = Esporte, y = IMC, fill = Esporte)) +
+  geom_boxplot(fill = c("#A11D21"), width = 0.5)+
+  stat_summary(fun = "mean", geom = "point", shape = 23, size = 3, fill = "white")+
+  labs(x = "Esporte", y = "IMC") +
+  theme_estat()
+```
+
+Observa-se que os atletas de Atletismo e Badminton tendem a ter uma mediana de IMC menor em comparação aos de Ginástica e Judô, sugerindo que essas duas modalidades têm atletas com IMC menores. O Judô apresenta a maior mediana entre os esportes analisados, indicando uma tendência a ter um IMC mais elevados entre seus atletas.
+
+O Judô se destaca por ter uma caixa maior, sugerindo mais variação no IMC dos seus atletas em comparação aos outros esportes. Por outro lado, os da Ginástica é menor, o que indica uma menor variação no IMC dos atletas dessa modalidade.
+
+O boxplot também exibe varios pontos fora dos limites, também conhecidos com outliers, que representam valores atípicos. Esportes como Atletismo e Judô apresentam uma quantidade significativa de outliers, com alguns atletas tendo IMC consideravelmente mais altos que a maioria de seus pares na mesma modalidade.
+
+### Normalidade
+
+O teste de Shapiro-Wilk foi aplicado para cada esporte para verificar se os dados de IMC seguem uma distribuição normal.
+
+```{r}
+# Verificar a normalidade dos dados com o teste de Shapiro-Wilk
+shapiro_results <- olimpiadas %>%
+  filter(Esporte %in% c("Ginástica", "Judô", "Atletismo", "Badminton")) %>%
+  group_by(Esporte) %>%
+  summarise(n_obs = n(),
+            p_value = ifelse(n_obs >= 3 & n_obs <= 5000,shapiro.test(IMC)$p.value,NA))
+shapiro_results <- replace(shapiro_results, is.na(shapiro_results), as.numeric("0.000000000000000001"))
+shapiro_results$p_value <- format(shapiro_results$p_value, scientific = TRUE)
+knitr::kable(shapiro_results$p_value)
+```
+
+Os valores-p resultantes para todos os esportes foram extremamente baixos, menores que um nível de significância preestabelecido de 5%,, indicando que os dados não seguem uma distribuição normal. Mesmo assim, os grupos possuem tamanhos de amostras grandes, permitindo o uso da ANOVA (Analise de variância), pois este teste é indicado para com grandes amostras.
+
+### Homogeneidade
+
+O teste de Levene foi aplicado para verificar se a variância do IMC entre os esportes é homogênea.
+
+```{r}
+# Verificar a homogeneidade
+levene_test <- leveneTest(IMC ~ Esporte, data = olimpiadas %>% filter(Esporte %in% c("Ginástica", "Judô", "Atletismo", "Badminton")))
+knitr::kable(levene_test)
+```
+
+O resultado mostrou um valor-p muito baixo (p \< 0,00000000000000022), indicando que as variâncias entre os grupos não são homogêneas. A violação da homogeneidade sugere que é preciso ter cuidado ao interpretar os resultados da ANOVA.
+
+### Análise de variância(ANOVA)
+
+Apesar da violação de alguns pressupostos, aplicou-se a ANOVA para avaliar se existem diferenças significativas entre os IMCs médios dos diferentes esportes.
+
+```{r}
+# Se os pressupostos forem atendidos, realizar ANOVA
+anova_result <- aov(IMC ~ Esporte, data = olimpiadas %>% filter(Esporte %in% c("Ginástica", "Judô", "Atletismo", "Badminton")))
+summary_result <- summary(anova_result)
+summary_df <- as.data.frame(summary_result[[1]])
+knitr::kable(summary_df)
+```
+
+O resultado indicou uma diferença significativa (p \< 0,05), sugerindo que pelo menos um dos esportes possui um IMC médio diferente dos outros.
+
+### Teste de Tukey (Comparações Múltiplas)
+
+Para identificar quais grupos de esportes apresentaram diferenças significativas entre si, foi realizado o teste de Tukey.
+
+```{r}
+# Se ANOVA mostrar diferença significativa, realizar o teste de Tukey
+tukey_result <- TukeyHSD(anova_result)
+tukey_df <- as.data.frame(tukey_result$Esporte)
+knitr::kable(tukey_df)
+```
+
+Os resultados mostraram diferenças significativas entre todos os pares de esportes analisados, com destaque para a diferença positiva entre Judô e Atletismo (3,52) e negativa entre Ginástica e Atletismo (-0,89), indicando que atletas de Judô têm, em média, IMC mais elevados em comparação aos de Atletismo, enquanto os de Ginástica tendem a ter IMC mais baixos.
+
+### Teste de Kruskal-Wallis
+
+Dada a violação da normalidade e homogeneidade das variâncias, foi aplicado o teste de Kruskal-Wallis, uma alternativa não-paramétrica à ANOVA.
+
+```{r}
+# Caso os pressupostos de ANOVA não sejam atendidos, utilizar o teste de Kruskal-Wallis
+kruskal_result <- kruskal.test(IMC ~ Esporte, data = olimpiadas %>% filter(Esporte %in% c("Ginástica", "Judô", "Atletismo", "Badminton")))
+result_df <- data.frame(
+  Estatística = kruskal_result$statistic,
+  p_value = kruskal_result$p.value,
+  Número_de_grupos = length(unique(olimpiadas$Esporte)),
+  Tamanho_da_amostra = nrow(olimpiadas)
+)
+knitr::kable(result_df)
+```
+
+O resultado do p-valor foi menor que 5% reforçou a conclusão da ANOVA, indicando diferenças significativas entre os grupos de esportes.
+
+## Top 3 medalhistas gerais por quantidade de cada tipo de medalha
+
+## Variação Peso por Altura
 
 # Conclusões
