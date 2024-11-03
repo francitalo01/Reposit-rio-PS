@@ -275,7 +275,7 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
 
 O projeto tem como objetivo auxiliar João Neves, proprietário da academia de alta performance House of Excellence, na otimização do desempenho de seus atletas de elite, com base em análises estatísticas de suas participações nas edições dos Jogos Olímpicos de 2000 a 2016. O foco das análises é identificar padrões de desempenho, características físicas e fatores relacionados às conquistas de medalhas, oferecendo insights valiosos para melhorar a preparação e a performance futura dos atletas.
 
-Segundo parágrafo: detalhar quais são as análises que serão feitas. TODOS OS TIPOS DE ANÁLISES, se é análise descritiva , teste de hipóteses, regressão. Descrever um pouco sobre o banco de dados( quantidade de variáveis, tipos de variáveis, etc)..
+Para este relatório, será usada variáveis como país, sexo, idade, altura, peso, esporte, tipo de medalha e edição olímpica. A primeira análise identificará os cinco países com maior número de mulheres medalhistas, classificando-os em ordem decrescente de conquistas femininas. Já a segunda análise calculará o IMC de atletas em atletismo, badminton, futebol, ginástica e judô, para comparar a variação do índice entre esportes e verificar diferenças significativas, aplicando a ANOVA para essa comparação. Em seguida, a análise dos três maiores medalhistas em quantidade total de medalhas avaliará a frequência de medalhas de ouro, prata e bronze conquistadas por cada um e as associações entre o tipo de medalha e o atleta. Para entender a relação entre peso e altura, será realizada uma regressão linear, investigando se há correlação positiva, negativa ou inexistente entre essas variáveis. Essas análises combinam métodos descritivos, testes de hipóteses e regressão.
 
 As análises foram realizadas utilizando o software R, versão 4.4.1, com pacotes especializados para manipulação de dados, visualização gráfica e modelagem estatística.
 
@@ -539,11 +539,21 @@ Com: - $k=$ número de grupos
 
 Se o p-valor for menor que o nível de significância $\alpha$, rejeita-se a hipótese nula.
 
+## Teste de Normalidade de Anderson-Darling
+
+O **teste de Normalidade de Anderson-Darling** é utilizado para verificar se uma amostra aleatória $X_1, X_2, ..., X_n$ de uma variável quantitativa segue uma distribuição Normal de probabilidade ou não. O teste possui as seguintes hipóteses:
+
+\begin{center}
+\hipoteses{A variável segue uma distribuição Normal}{A variável segue outro modelo}
+\end{center}
+
+Se a hipótese nula for verdadeira, espera-se que o p-valor esteja acima do nível de significância $\alpha$.
+
 # Análises
 
 ## Top 5 países com maior número de mulheres medalhistas
 
-A análise, buscamos identificar os países que tiveram o maior número de mulheres medalhistas em Jogos Olímpicos de 2000 a 2016. Utilizou-se dados das edições de Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016, considerando as variáveis de sexo (feminino), país de origem das atletas (Team), e a presença de uma medalha (Medal). O objetivo principal foi compreender quais nações se destacaram em termos de conquistas femininas, utilizando como métricas o número total de medalhistas por país e a frequência relativa de cada país em relação ao total de mulheres medalhistas.
+A análise, buscamos identificar os países que tiveram o maior número de mulheres medalhistas em Jogos Olímpicos de 2000 a 2016. Utilizou-se dados das edições de Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016, considerando as variáveis de sexo (feminino), país de origem das atletas (Team), e a presença de uma medalha (Medal).A variavel sexo é uma variavel qualitativa nominal, já a variável  O objetivo principal foi compreender quais nações se destacaram em termos de conquistas femininas, utilizando como métricas o número total de medalhistas por país e a frequência relativa de cada país em relação ao total de mulheres medalhistas.
 
 ```{r fig.cap="Gráfico de barras dos 5 países com maior número de mulheres medalhistas", fig.align="center"}
 # 1. Top 5 países com maior número de mulheres medalhistas (13/10)----
@@ -730,6 +740,12 @@ shapiro_results$p_value <- format(shapiro_results$p_value, scientific = TRUE)
 knitr::kable(shapiro_results$p_value,caption = "Teste de Shapiro-Wilk",col.names = "P-valor")
 ```
 
+$\begin{cases}
+    H_{0}: \mbox{A distribuição dos dados de IMC para cada esporte é normal.} \\
+    H_{1}: \mbox{A distribuição dos dados de IMC para cada esporte não é normal.} \\
+  \end{cases}
+$\\
+
 Os valores-p resultantes para todos os esportes foram extremamente baixos, menores que um nível de significância preestabelecido de 5%, indicando que os dados não seguem uma distribuição normal.
 
 
@@ -749,6 +765,11 @@ result_df <- data.frame(
 result_df$p_value <- format(result_df$p_value, scientific = TRUE)
 knitr::kable(result_df, caption = "Teste de Kruskal-Wallis", col.names = c("","Estatística", "P-valor", "Grupos", "Tamanho amostral"))
 ```
+$\begin{cases}
+    H_{0}: \mbox{Não há diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC têm a mesma mediana entre os grupos.} \\
+    H_{1}: \mbox{Há pelo menos uma diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC diferem entre os grupos.} \\
+  \end{cases}
+$\\
 
 O resultado do p-valor foi menor que 5%, indicando diferenças significativas do IMC entre os grupos de esportes.
 
@@ -803,6 +824,9 @@ traducoes_medalha <- c(
 tipo_medalha <- tipo_medalha %>% 
   mutate(Medalha = dplyr::recode(Medalha, !!!traducoes_medalha))
 
+olimpiadas <- olimpiadas %>% 
+  mutate(Medalha = dplyr::recode(Medalha, !!!traducoes_medalha))
+
 knitr::kable(tipo_medalha, caption = "Tabela da Distribuição das Medalhas", col.names = c("Nome","Medalha","Quantidade"))
 ```
 
@@ -818,9 +842,15 @@ ggplot(tipo_medalha, aes(x = Nome, y = Count, fill = Medalha)) +
 ```
 A distribuição das medalhas foi visualizada em um gráfico de barras que evidenciou o predomínio de medalhas de ouro nas conquistas de Michael Phelps, enquanto Natalie Coughlin e Ryan Lochte apresentaram uma proporção mais distribuída entre os diferentes tipos de medalha.
 
-```{r}
+Podemos confirmar matematicamente fazendo um teste de independência.
 
-# Criar uma tabela de contingência entre Atleta e Tipo de Medalha
+$\begin{cases}
+    H_{0}: \mbox{Não há relação entre o medalhista e o tipo de medalha conquistada. Em outras palavras, a quantidade de medalhas de ouro, prata e bronze é distribuída de forma independente entre os três atletas analisados.} \\
+    H_{1}: \mbox{Existe uma relação entre o medalhista e o tipo de medalha conquistada. Isso significa que a distribuição das medalhas de ouro, prata e bronze varia significativamente entre os três atletas.} \\
+  \end{cases}
+$\\
+
+```{r}
 tabela_medalha <- table(top_3_atletas$Nome, top_3_atletas$Medalha)
 
 teste_qui <- chisq.test(tabela_medalha)
@@ -833,10 +863,153 @@ teste_qui_df <- data.frame(
 knitr::kable(teste_qui_df, caption = "Resultados do teste qui-quadrado",col.names = c("","Estatítica","Graus de Liberdade","P-valor"))
 
 ```
+
 Para verificar se existia uma relação estatisticamente significativa entre os atletas e os tipos de medalhas, realizo-se um teste qui-quadrado de independência. Os resultados do teste indicaram um valor de X-quadrado de 12,776 com 4 graus de liberdade e um valor-p de 0,01243. Este valor-p, sendo inferior ao nível de significância de 5%, que levou a rejeitar a hipótese nula de independência entre as variáveis. Ou seja, os resultados indicam que existe uma relação significativa entre os atletas analisados e os tipos de medalhas que conquistaram. Isso sugere que a distribuição das medalhas de ouro, prata e bronze não ocorre de forma uniforme entre os três atletas, havendo diferenças marcantes.
 
 
 ## Variação Peso por Altura
+
+
+A análise realizada tem como objetivo compreender a relação entre o peso e a altura dos atletas, investigando se existe uma correlação direta entre essas variáveis. Em outras palavras, a análise busca responder se, à medida que o peso aumenta, a altura dos atletas também tende a aumentar, ou se não há uma relação clara entre essas duas características físicas. Para essa análise, são utilizadas as variáveis peso e altura, ambas sendo variáveis quantitativas contínuas.
+
+
+```{r}
+# 4) Variação Peso por Altura (03/10) ----
+# O intuito é entender a relação entre o peso e altura dos atletas. À medida que o peso aumenta,
+# a altura também aumenta? Ou o contrário, ou não tem diferença, ou não dá pra inferir nada?
+
+olimpiadas_Alt_Pes <- olimpiadas %>%
+  filter(!is.na(Medalha),!is.na(Altura),!is.na(Peso))
+```
+
+```{r}
+olimpiadas_Alt_Pes$Altura_Bin <- cut(olimpiadas_Alt_Pes$Altura, breaks = seq(1.3, 2.2, by = 0.1), right = FALSE)
+
+olimpiadas_Alt_Pes$Peso_Bin <- cut(olimpiadas_Alt_Pes$Peso, breaks = seq(20, 120, by = 10), right = FALSE)
+
+estatisticas_Altura <- olimpiadas_Alt_Pes %>%
+  group_by(Altura_Bin) %>%
+  summarise(Tamanho_amostral = n(),
+            Média = mean(IMC, na.rm = TRUE),
+            Mediana = median(IMC, na.rm = TRUE),
+            Desvio_padrão = sd(IMC, na.rm = TRUE),
+            Mín = min(IMC, na.rm = TRUE),
+            Máx = max(IMC, na.rm = TRUE))
+knitr::kable(estatisticas_Altura, caption = "Tabela das estatísticas descritivas da Altura dos Atletas", col.names = c("Altura","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
+```
+A Tabela 7 observa-se que a média e a mediana da altura aumentam conforme os intervalos se expandem, sugerindo uma tendência de crescimento no porte físico dos atletas nos intervalos superiores. O desvio padrão também é maior nos grupos com atletas mais altos, indicando que há uma maior variação de altura entre esses competidores. Além disso, a diferença entre os valores mínimos e máximos em cada faixa evidencia a diversidade de estaturas, mostrando que atletas de alturas variadas competem em diferentes esportes, dependendo das exigências físicas de cada modalidade.
+
+```{r}
+estatisticas_Peso <- olimpiadas_Alt_Pes %>%
+  group_by(Peso_Bin) %>%
+  summarise(Tamanho_amostral = n(),
+            Média = mean(IMC, na.rm = TRUE),
+            Mediana = median(IMC, na.rm = TRUE),
+            Desvio_padrão = sd(IMC, na.rm = TRUE),
+            Mín = min(IMC, na.rm = TRUE),
+            Máx = max(IMC, na.rm = TRUE))
+knitr::kable(estatisticas_Peso, caption = "Tabela das estatísticas descritivas do Peso dos Atletas", col.names = c("Peso","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
+```
+
+A Tabela 8 fornece uma análise focada nos intervalos de peso. Assim como na altura, a média e a mediana do peso dos atletas aumentam de forma progressiva ao longo dos intervalos, refletindo a categorização por faixas de peso. Os valores de desvio padrão sugerem uma maior variação nos grupos intermediários, onde há uma maior diversidade de composição corporal. A diferença entre os valores mínimos e máximos dentro de cada intervalo também mostra a diversidade de pesos, o que pode ser um reflexo das exigências físicas de diferentes esportes, onde atletas podem precisar de mais ou menos massa corporal para obter desempenho ideal.
+
+```{r}
+ggplot(olimpiadas_Alt_Pes) +
+  aes(x = Altura, y = Peso) +
+  geom_point(color = "#A11D21", size = 3) +
+  geom_smooth(method = "lm", size = 0.8, color = "#041835") +
+  labs(
+    title = "Relação entre Peso e Altura dos Atletas",
+    x = "Altura (cm)",
+    y = "Peso (kg)"
+  ) +
+  theme_estat()
+
+```
+
+Pode-se observar uma correlação positiva entre altura e peso, onde, à medida que a altura dos atletas aumenta, o peso tende a aumentar também.  Sugerindo que atletas mais altos geralmente têm um peso. A dispersão dos pontos em torno da linha de tendência mostra, no entanto, uma variação considerável. Atletas de mesma altura apresentam pesos diferentes, o que pode refletir a diversidade de esportes e de composição corporal, onde fatores como a quantidade de massa muscular e gordura influenciam significativamente o peso.
+
+
+```{r}
+# Teste de Anderson-Darling
+# install.packages("nortest")
+
+library(nortest)
+
+norm.alt <- ad.test(olimpiadas_Alt_Pes$Altura)
+norm.pes <- ad.test(olimpiadas_Alt_Pes$Peso)
+
+norm.alt.df <- data.frame(Statistic = norm.alt$statistic, P.Value = norm.alt$p.value)
+norm.pes.df <- data.frame(Statistic = norm.pes$statistic, P.Value = norm.pes$p.value)
+
+knitr::kable(norm.alt.df, caption = "Tabela da normalidade da Altura dos Atletas", col.names = c("Estatística", "Valor P"))
+knitr::kable(norm.pes.df, caption = "Tabela da normalidade do Peso dos Atletas", col.names = c("Estatística", "Valor P"))
+
+```
+$\begin{cases}
+    H_{0}: \mbox{Os dados vêm de uma distribuição normal} \\
+    H_{1}: \mbox{Os dados não vêm de uma distribuição normal} \\
+  \end{cases}
+$\\
+
+Para verificar se essas variáveis seguem uma distribuição normal, foi realizado o Teste de Anderson-Darling, que é utilizado para avaliar a normalidade dos dados de grandes amostras. Tanto para a altura quanto para o peso, os resultados apontaram p-valores extremamente baixos, o que leva à rejeição da hipótese nula de normalidade. Isso indica que tanto o peso quanto a altura dos atletas não seguem uma distribuição normal, sendo distribuídos de maneira assimétrica.
+
+```{r}
+olimpiadas_Alt_Pes$Altura_Bin <- cut(olimpiadas_Alt_Pes$Altura, breaks = seq(1.3, 2.2, by = 0.1), right = FALSE)
+
+olimpiadas_Alt_Pes$Peso_Bin <- cut(olimpiadas_Alt_Pes$Peso, breaks = seq(20, 120, by = 10), right = FALSE)
+
+bartlett_result <- bartlett.test(Altura ~ Peso_Bin, data = olimpiadas_Alt_Pes)
+
+bartlett_df <- data.frame(Statistic = bartlett_result$statistic, P.Value = bartlett_result$p.value)
+
+knitr::kable(bartlett_df, caption = "Teste de Bartlett para homogeneidade de variâncias entre grupos de peso", col.names = c("Estatística", "P-valor"))
+
+```
+$\begin{cases}
+    H_{0}: \mbox{As variâncias dos grupos são iguais} \\
+    H_{1}: \mbox{Pelo menos uma das variâncias é diferente} \\
+  \end{cases}
+$\\
+
+```{r}
+library(car)
+
+levene_result <- leveneTest(Altura ~ Peso_Bin, data = olimpiadas_Alt_Pes)
+
+levene_df <- as.data.frame(levene_result)
+
+knitr::kable(levene_df, caption = "Teste de Levene para homogeneidade de variâncias entre grupos de peso")
+
+```
+$\begin{cases}
+    H_{0}: \mbox{As variâncias dos grupos são iguais} \\
+    H_{1}: \mbox{Pelo menos uma das variâncias é diferente} \\
+  \end{cases}
+$\\
+
+O Teste de Bartlett e o Teste de Levene foram conduzidos e ambos indicaram resultados significativos, com os p-valores extremamente baixos. Isso sugere que as variâncias entre os grupos de diferentes faixas de peso não são homogêneas, ou seja, há uma diferença significativa nas variâncias entre os grupos, o que pode afetar a análise de correlação entre as variáveis.
+
+```{r}
+modelo_simples <- lm(Altura ~ Peso, data = olimpiadas_Alt_Pes)
+summary_modelo <- summary(modelo_simples)
+
+coeficientes_df <- as.data.frame(summary_modelo$coefficients)
+
+knitr::kable(coeficientes_df, caption = "Resultados da Regressão Linear Simples para Altura em função do Peso", col.names = c("Estimativa", "Erro Padrão", "Estatística t", "P-valor"))
+
+```
+
+Para investigar a relação entre peso e altura, foi realizada uma análise de regressão linear, onde a altura foi ajustada em função do peso. O modelo ajustado revelou uma equação onde a altura aumenta conforme o peso aumenta. O coeficiente de regressão associado ao peso foi positivo e estatisticamente significativo, reforçando a ideia de que há uma relação positiva entre as duas variáveis.
+
+
+
+
+
+
+
+
+
 
 # Conclusões
 
@@ -846,6 +1019,8 @@ Na segunda análise observou-se diferenças significativas no IMC entre as modal
 
 Na terceira análise mostrou que há diferenças significativas na forma como os três principais medalhistas olímpicos conquistaram suas medalhas, com Phelps se destacando pelo número expressivo de ouros, enquanto Coughlin e Lochte apresentaram maior equilíbrio entre os diferentes tipos de medalha. Essas diferenças são estatisticamente relevantes, conforme evidenciado pelo teste qui-quadrado, e refletem as particularidades de desempenho de cada atleta ao longo de suas participações olímpicas. Esse entendimento pode contribuir para análises futuras sobre o impacto de diferentes fatores (como modalidade esportiva, preparo físico e características pessoais) no desempenho dos atletas olímpicos mais bem-sucedidos.
 
+
+A quarta análise mostra que há uma correlação positiva significativa entre o peso e a altura dos atletas.
 
 
 
