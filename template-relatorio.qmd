@@ -1,9 +1,11 @@
 ---
-title: "House of excellence"
-
+title: "Análise do Desempenho e Perfil dos Atletas Olímpicos: Um Panorama das Conquistas e Características Físicas de 2000 a 2016"
+  
 # Nome do documento PDF gerado
-output-file: House of excellence
+output-file: Análise do Desempenho e Perfil dos Atletas Olímpicos
 ---
+
+
 
 ```{r}
 #| include: false
@@ -13,7 +15,7 @@ source("rdocs/source/packages.R")
 ```{r}
 #| include: false
 # Pacotes ----
-pacman::p_load(tidyverse,readxl,lubridate,janitor,ggplot2,dplyr,tidytext,knitr,car)
+pacman::p_load(tidyverse,readxl,lubridate,janitor,ggplot2,dplyr,tidytext,knitr,car,stats,patchwork,stringr,tibble)
 
 # Diretorio de trabalho
 setwd("C:/Users/Francisco Italo/Documents")
@@ -202,18 +204,15 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
               `Mediana` = round(quantile(!!sym(var_name), probs = .5),2),
               `3º Quartil` = round(quantile(!!sym(var_name), probs = .75),2),
               `Máximo` = round(max(!!sym(var_name)),2)) %>%
-    t() %>% 
+    t() %>%
     as.data.frame() %>%
     rownames_to_column()
-  
   latex <- str_c("\\begin{quadro}[H]
 \t\\setlength{\t\\tabcolsep}{9pt}
 \t\\renewcommand{\t\\arraystretch}{1.20}
 \t\\caption{", title, "}
 \t\\centering
-\t\\begin{adjustbox}{max width=\\textwidth}
 \t\\begin{tabular} {", sep="")
-  
   col_count <- ncol(data)
   row_count <- nrow(data)
   latex <- str_c(latex, "| l |\n", sep=" ")
@@ -225,8 +224,6 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
       max()
     latex <- str_c(latex, "\t\t\tS[table-format = ", numCount ,".2]\n", sep="")
   }
-  
-  
   latex <- str_c(latex, "\t\t\t|}\n\t\\hline\n\t\t", sep="")
   if (col_count > 2)
   {
@@ -236,7 +233,6 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
         latex <- str_c(latex, "\\textbf{Estatística}", sep="")
       else
         latex <- str_c(latex, " \\textbf{", data[1, i], "}", sep="")
-      
       if (i < col_count)
         latex <- str_c(latex, "&", sep=" ")
       else
@@ -245,27 +241,21 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
   }
   else
   {
-    latex <- str_c(latex, "\\textbf{Estatística} & \\textbf{Valor} \\\\\n", sep="")  
+    latex <- str_c(latex, "\\textbf{Estatística} & \\textbf{Valor} \\\\\n", sep="")
   }
-  
   latex <- str_c(latex, "\t\t\\hline\n", sep="")
-  
   if (col_count > 2)
     starting_number <- 2
   else
     starting_number <- 1
-  
   for (i in seq(starting_number, row_count))
   {
     latex <- str_c(latex, "\t\t", str_flatten(t(data[i,]), collapse = " & "), " \\\\\n")
   }
-  
   latex <- str_c(latex, "\t\\hline
 \t\\end{tabular}
 \t\\label{", label, "}
-\t\\end{adjustbox}
 \\end{quadro}", sep="")
-  
   writeLines(latex)
 }
 ```
@@ -275,11 +265,14 @@ print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nom
 
 O projeto tem como objetivo auxiliar João Neves, proprietário da academia de alta performance House of Excellence, na otimização do desempenho de seus atletas de elite, com base em análises estatísticas de suas participações nas edições dos Jogos Olímpicos de 2000 a 2016. O foco das análises é identificar padrões de desempenho, características físicas e fatores relacionados às conquistas de medalhas, oferecendo insights valiosos para melhorar a preparação e a performance futura dos atletas.
 
-Para este relatório, será usada variáveis como país, sexo, idade, altura, peso, esporte, tipo de medalha e edição olímpica. A primeira análise identificará os cinco países com maior número de mulheres medalhistas, classificando-os em ordem decrescente de conquistas femininas. Já a segunda análise calculará o IMC de atletas em atletismo, badminton, futebol, ginástica e judô, para comparar a variação do índice entre esportes e verificar diferenças significativas, aplicando a ANOVA para essa comparação. Em seguida, a análise dos três maiores medalhistas em quantidade total de medalhas avaliará a frequência de medalhas de ouro, prata e bronze conquistadas por cada um e as associações entre o tipo de medalha e o atleta. Para entender a relação entre peso e altura, será realizada uma regressão linear, investigando se há correlação positiva, negativa ou inexistente entre essas variáveis. Essas análises combinam métodos descritivos, testes de hipóteses e regressão.
+O banco de dados foi fornecidos pelo cliente separado por paises sede da olimpiada e ano de sua realização e contém as seguintes variáveis: nome do atleta, sexo, idade, altura, peso, país que o atleta compete, esporte, evento e tipo de medalha. A primeira análise identifica os cinco países com maior número de mulheres medalhistas, classificando-os em ordem decrescente de conquistas femininas. Já a segunda análise calculou o IMC de atletas em atletismo, badminton, futebol, ginástica e judô, para comparar a variação do índice entre esportes e verificar diferenças significativas, aplicando a ANOVA para essa comparação. Em seguida, a análise dos três maiores medalhistas em quantidade total de medalhas avaliará a frequência de medalhas de ouro, prata e bronze conquistadas por cada um e as associações entre o tipo de medalha e o atleta. Para entender a relação entre peso e altura, será realizada uma regressão linear, investigando se há correlação positiva, negativa ou inexistente entre essas variáveis. Essas análises combinam métodos descritivos, testes de hipóteses e regressão.
 
 As análises foram realizadas utilizando o software R, versão 4.4.1, com pacotes especializados para manipulação de dados, visualização gráfica e modelagem estatística.
 
+
 # Referencial Teórico
+
+Este relatório é composto por técnicas estatísticas que serão descritas a seguir de acordo com o que foi utilizado em tal estudo.
 
 ## Frequência Relativa
 
@@ -347,20 +340,6 @@ Se o cálculo da posição resultar em uma fração, deve-se fazer a média entr
 
 A variância é uma medida que avalia o quanto os dados estão dispersos em relação à média, em uma escala ao quadrado da escala dos dados.
 
-### Variância Populacional
-
-Para uma população, a variância é dada por:
-
-$$\sigma^2=\frac{\sum\limits_{i=1}^{N}\left(X_i - \mu\right)^2}{N}$$
-
-Com:
-
--   $X_i =$ $i$-ésima observação da população
-
--   $\mu =$ média populacional
-
--   $N =$ tamanho da população
-
 ### Variância Amostral
 
 Para uma amostra, a variância é dada por:
@@ -379,19 +358,6 @@ Com:
 
 O desvio padrão é a raiz quadrada da variância. Ele avalia o quanto os dados estão dispersos em relação à média.
 
-### Desvio Padrão Populacional
-
-Para uma população, o desvio padrão é dado por:
-
-$$\sigma=\sqrt{\frac{\sum\limits_{i=1}^{N}\left(X_i - \mu\right)^2}{N}}$$
-
-Com:
-
--   $X_i =$ i-ésima observação da população
-
--   $\mu =$ média populacional
-
--   $N =$ tamanho da população
 
 ### Desvio Padrão Amostral
 
@@ -435,23 +401,24 @@ Com:
 
 -   $n=$ tamanho da amostra
 
-## Curtose
+## Coeficiente de Correlação de Pearson
 
-O coeficiente de curtose quantifica o achatamento da função de distribuição em relação à distribuição Normal e é dado por:
+O coeficiente de correlação de Pearson é uma medida que verifica o grau de relação linear entre duas variáveis quantitativas. Este coeficiente varia entre os valores -1 e 1. O valor zero significa que não há relação linear entre as variáveis. Quando o valor do coeficiente $r$ é negativo, diz-se existir uma relação de grandeza inversamente proporcional entre as variáveis. Analogamente, quando $r$ é positivo, diz-se que as duas variáveis são diretamente proporcionais.
 
-$$Curtose = \frac{1}{n}\times\sum\limits_{i=1}^{n}\left(\frac{ X_i-\bar{X} }{S} \right)^4 - 3$$
+O coeficiente de correlação de Pearson é normalmente representado pela letra $r$ e a sua fórmula de cálculo é:
 
-Com:
+$$
+r_{Pearson} = \frac{\displaystyle \sum_{i=1}^{n} \left [ \left(x_i-\bar{x}\right) \left(y_i-\bar{y}\right) \right]}{\sqrt{\displaystyle \sum_{i=1}^{n} x_i^2 - n\bar{x}^2}  \times \sqrt{\displaystyle \sum_{i=1}^{n} y_i^2 - n\bar{y}^2}}
+$$
 
--   $X_i =$ i-ésima observação da amostra
+Onde:
 
--   $\bar{X} =$ média amostral
+-   $x_i =$ i-ésimo valor da variável $X$
+-   $y_i =$ i-ésimo valor da variável $Y$
+-   $\bar{x} =$ média dos valores da variável $X$
+-   $\bar{y} =$ média dos valores da variável $Y$
 
--   $S =$ desvio padrão amostral
-
--   $n =$ tamanho da amostra
-
-Uma distribuição é dita mesocúrtica quando possui curtose nula. Quando a curtose é positiva, a distribuição é leptocúrtica (mais afunilada e com pico). Valores negativos indicam uma distribuição platicúrtica (mais achatada).
+Vale ressaltar que o coeficiente de Pearson é paramétrico e, portanto, sensível quanto à normalidade (simetria) dos dados.
 
 ## Boxplot
 
@@ -549,11 +516,14 @@ O **teste de Normalidade de Anderson-Darling** é utilizado para verificar se um
 
 Se a hipótese nula for verdadeira, espera-se que o p-valor esteja acima do nível de significância $\alpha$.
 
+
+
+
 # Análises
 
-## Top 5 países com maior número de mulheres medalhistas
+## Top 5 países com maior número de mulheres medalhistas únicas
 
-A análise, buscamos identificar os países que tiveram o maior número de mulheres medalhistas em Jogos Olímpicos de 2000 a 2016. Utilizou-se dados das edições de Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016, considerando as variáveis de sexo (feminino), país de origem das atletas (Team), e a presença de uma medalha (Medal).A variavel sexo é uma variavel qualitativa nominal, já a variável  O objetivo principal foi compreender quais nações se destacaram em termos de conquistas femininas, utilizando como métricas o número total de medalhistas por país e a frequência relativa de cada país em relação ao total de mulheres medalhistas.
+Na análise, busca-se identificar os países que tiveram o maior número de mulheres medalhistas nos Jogos Olímpicos de 2000 a 2016. Utilizou-se dados das edições de Sydney 2000, Atenas 2004, Pequim 2008, Londres 2012 e Rio 2016, considerando as variáveis de sexo (feminino), país de origem das atletas (Time), e a presença de uma medalha (Medalha). As três variáveis estudadas são variáveis qualitativas nominais. O objetivo principal foi compreender quais nações se destacaram em termos de conquistas femininas, sem duplicações de resultados, ou seja, apenas o número de mulheres medalhistas únicas. Utilizando como métricas o número total de medalhistas por país e a frequência relativa de cada país em relação ao total de mulheres medalhistas.
 
 ```{r fig.cap="Gráfico de barras dos 5 países com maior número de mulheres medalhistas", fig.align="center"}
 # 1. Top 5 países com maior número de mulheres medalhistas (13/10)----
@@ -561,15 +531,16 @@ A análise, buscamos identificar os países que tiveram o maior número de mulhe
 
 # Total (Tabela pronta, mas falta colocar a padronização da Estat)
 top_5_total <- olimpiadas %>%
-  filter(Sexo == "F", !is.na(Medalha)) %>% 
+  filter(Sexo == "F", !is.na(Medalha)) %>%
+  distinct(Time, Nome, .keep_all = TRUE) %>%
   group_by(Time) %>%
   summarise(total_medalhistas = n(), .groups = 'drop') %>% 
-  arrange(desc(total_medalhistas)) %>%
-  slice_head(n = 5) %>%
+  arrange(desc(total_medalhistas))  %>%
   mutate (freq = round(100*(total_medalhistas/sum(total_medalhistas)), 2))  %>%
   mutate(freq = gsub("\\.", ",", freq) %>% 
            paste("%", sep = ""),label = str_c(total_medalhistas, " (", freq, ")") 
-         %>% str_squish())
+         %>% str_squish())%>%
+  slice_head(n = 5)
 
 traducoes <- c(
   "United States" = "Estados Unidos",
@@ -586,15 +557,17 @@ ggplot(top_5_total)+
   geom_bar(stat = "identity", fill = c("#A11D21"), width = 0.7) +
   geom_text(aes(label = label), position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +
   labs(x = "País", y = "Número de Mulheres Medalhistas") +
-  ylim(NA,800)+
+  ylim(NA,600)+
   theme_estat()
 ```
 
-Entre os anos de 2000 a 2016, os Estados Unidos se destacaram como o país com o maior número de mulheres medalhistas nas Olimpíadas, conquistando 741 medalhas, o que representa 34,48% do total. Em segundo lugar, a Rússia registrou 416 medalhas femininas, correspondendo a 19,36% do total. A China ocupa a terceira posição com 384 medalhas, o que equivale a 17,87% do total. A Austrália, com 340 medalhas (15,82%), é o quarto colocado. Por fim, a Alemanha completa o top 5 com 268 medalhas, representando 12,47% do total.
+Entre os anos de 2000 a 2016, os Estados Unidos se destacaram como o país com o maior número de mulheres medalhistas nas Olimpíadas, totalizando 443 atletas únicas, o que representa 13,62% do total de mulheres medalhistas analisadas. Em segundo lugar, a Rússia registrou 298 mulheres medalhistas, correspondendo a 9,16% do total. A China ocupa a terceira posição com 268 medalhistas, o que equivale a 8,24% do total. A Austrália, com 219 atletas únicas (6,73%), é o quarto colocado. Por fim, a Alemanha completa o top 5 com 188 medalhistas, representando 5,78% do total.
 
 ## Análise do IMC para os esportes selecionados
 
-Nesta análise, busca-se comparar o Índice de Massa Corporal (IMC) de atletas olímpicos que competiram em diferentes modalidades esportivas, especificamente Atletismo, Badminton, Futebol, Ginástica e Judô. O objetivo é identificar se há diferenças significativas nos valores de IMC entre esses esportes, bem como entender quais esportes tendem a ter IMCs mais altos ou mais baixos.
+Nesta análise, busca-se comparar o Índice de Massa Corporal (IMC) de atletas olímpicos que competiram em diferentes modalidades esportivas, especificamente Atletismo, Badminton, Futebol, Ginástica e Judô. As variáveis trabalhadas foram as seguintes: esporte é uma variável qualitativa nominal, altura variável quantitativa contínua e peso é uma variável quantitativa contínua. Depois de calculado o IMC temos que ele é uma variável quantitativa contínua. O objetivo é identificar se há diferenças significativas nos valores de IMC entre esses esportes, bem como entender quais esportes tendem a ter IMC mais altos ou mais baixos.
+
+O cálculo do IMC é dado pela seguinte fórmula:
 
 $$
 IMC = \frac{Peso(kg)}{Altura(m^2)}
@@ -684,33 +657,9 @@ olimpiadas <- olimpiadas %>%
   mutate(Esporte = dplyr::recode(Esporte, !!!traducoes_esportes))
 
 olimpiadas_IMC <- olimpiadas %>%
-  filter(Esporte %in% c("Badminton", "Atletismo", "Judô", "Ginástica", "Futebol"), !is.na(Medalha))
+  filter(Esporte %in% c("Badminton", "Atletismo", "Judô", "Ginástica", "Futebol"), !is.na(Medalha))%>%
+  distinct(Nome, .keep_all = TRUE)
 ```
-
-
-```{r}
-estatisticas_IMC <- olimpiadas_IMC %>%
-  group_by(Esporte) %>%
-  summarise(Tamanho_amostral = n(),
-            Média = mean(IMC, na.rm = TRUE),
-            Mediana = median(IMC, na.rm = TRUE),
-            Desvio_padrão = sd(IMC, na.rm = TRUE),
-            Mín = min(IMC, na.rm = TRUE),
-            Máx = max(IMC, na.rm = TRUE))
-knitr::kable(estatisticas_IMC, caption = "Tabela das estatísticas descritivas por esporte", col.names = c("Esporte","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
-```
-
-No Atletismo, a média do IMC é de 22,3, com uma mediana de 21,4 e um desvio padrão de 3,86. Isso sugere que os valores de IMC dos atletas são relativamente próximos, mas há alguns casos extremos, como evidenciado pelo valor máximo de 44,4.
-
-Os atletas de Badminton apresentam uma média de IMC de 22,2, e uma mediana de 22,3, com um desvio padrão baixo de 1,50. Indicando uma menor variabilidade nos valores de IMC, com a maioria dos atletas concentrados em torno da média.
-
-Os jogadores de Futebol apresentam uma média de IMC ligeiramente maior, de 22,5, e uma mediana de 22,5, com um desvio padrão baixo de 1,73. Isso indica uma menor variabilidade nos valores de IMC, com a maioria dos jogadores concentrados em torno da média.
-
-Na Ginástica, o IMC médio é de 20,7, enquanto a mediana é de 21,1, e o desvio padrão é de 2,38, indicando também uma baixa variabilidade e uma distribuição mais homogênea dos valores de IMC entre os atletas.
-
-Já os atletas de Judô apresentam a maior média de IMC, de 25,7, com uma mediana de 24,7 e um desvio padrão mais elevado, de 5,12. Esse maior desvio padrão sugere uma variabilidade significativa no IMC dos judocas, com um valor máximo de 56.5, indicando que alguns atletas possuem um IMC substancialmente maior, o que pode estar relacionado à necessidade de uma maior massa corporal nesse esporte de combate.
-
-De acordo com os dados tem se os judocas tendem a ter um IMC mais elevados, enquanto os ginastas apresentam os menores. As diferenças na variabilidade entre os grupos refletem os distintos requisitos físicos de cada esporte, como força e agilidade.
 
 ```{r fig.cap="Boxplot da Comparação do IMC entre Esportes", fig.align="center"}
 
@@ -721,11 +670,58 @@ ggplot(olimpiadas_IMC, aes(x = Esporte, y = IMC, fill = Esporte)) +
   theme_estat()
 ```
 
-Observa-se que os atletas de Atletismo e Badminton tendem a ter uma mediana de IMC menor em comparação aos de Ginástica e Judô, sugerindo que essas duas modalidades têm atletas com IMC menores. O Judô apresenta a maior mediana entre os esportes analisados, indicando uma tendência a ter um IMC mais elevados entre seus atletas.
-
-O Judô se destaca por ter uma caixa maior, sugerindo mais variação no IMC dos seus atletas em comparação aos outros esportes. Por outro lado, os da Ginástica é menor, o que indica uma menor variação no IMC dos atletas dessa modalidade.
+Observa-se que os atletas de Atletismo e Badminton tendem a ter uma mediana de IMC menor em comparação aos de Ginástica e Judô, sugerindo que essas duas modalidades têm atletas com IMC menores. O Judô apresenta a maior mediana entre os esportes analisados, indicando uma tendência a ter um IMC mais elevados entre seus atletas. O Judô se destaca por ter uma caixa maior, sugerindo mais variação no IMC dos seus atletas em comparação aos outros esportes. Por outro lado, os da Ginástica é menor, o que indica uma menor variação no IMC dos atletas dessa modalidade.
 
 O boxplot também exibe varios pontos fora dos limites, também conhecidos com outliers, que representam valores atípicos. Esportes como Atletismo e Judô apresentam uma quantidade significativa de outliers, com alguns atletas tendo IMC consideravelmente mais altos que a maioria de seus pares na mesma modalidade.
+
+```{r}
+estatisticas_IMC <- olimpiadas_IMC %>%
+  group_by(Esporte) %>%
+  summarise(
+    Tamanho_amostral = n(),
+    Média = round(mean(IMC, na.rm = TRUE), 2),
+    Mediana = round(median(IMC, na.rm = TRUE), 2),
+    Desvio_padrão = round(sd(IMC, na.rm = TRUE), 2),
+    Mín = round(min(IMC, na.rm = TRUE), 1),
+    Máx = round(max(IMC, na.rm = TRUE), 1)
+  )
+#knitr::kable(estatisticas_IMC, caption = "Tabela das estatísticas descritivas por esporte", col.names = c("Esporte","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
+```
+
+```{=latex}
+
+\begin{quadro}[H]
+\centering
+\caption{Estatísticas descritivas por esporte}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+       \hline
+       \textbf{Esporte} & \textbf{Tamanho Amostral} & \textbf{Média} & \textbf{Mediana} & \textbf{Desvio Padrão} & \textbf{Min} & \textbf{Max} \\
+       \hline
+       Atletismo & 691 & 22,39 & 21,46 & 4,01 & 15,8 & 44,4 \\
+       Badminton & 92 & 22,18 & 22,20 & 1,59 & 18,9 & 26,7 \\
+       Futebol & 447 & 22,57 & 22,55 & 1,77 & 16,7 & 29,1 \\
+       Ginástica & 200 & 20,69 & 21,09 & 2,42 & 15,2 & 26,4 \\
+       Judô & 231 & 25,61 & 24,62 & 5,05 & 18,5 & 56,5 \\
+       \hline
+\end{tabular}
+\label{estatisticasdescritivas}
+\end{quadro}
+
+
+```
+
+No Atletismo, a média do IMC é de aproximadamente 22,39, com uma mediana de 21,46 e um desvio padrão de 4,01. Isso indica que, embora a maioria dos atletas de Atletismo tenha um IMC próximo à média, há certa variabilidade, com valores extremos como o máximo de 44,4, sugerindo diferenças significativas entre os atletas dessa modalidade. Para os atletas de Badminton, a média de IMC é de 22,18 e a mediana é de 22,20, com um desvio padrão de apenas 1,59. Esse baixo desvio padrão indica uma menor variabilidade nos valores de IMC, sugerindo que a maioria dos atletas de Badminton possui valores próximos da média, sem grandes desvios.
+
+No Futebol, a média de IMC é ligeiramente superior, de 22,57, e a mediana é de 22,54, com um desvio padrão de 1,77. Essa baixa variabilidade também indica que a maioria dos jogadores apresenta valores de IMC semelhantes, concentrando-se em torno da média. Na Ginástica, a média do IMC é de 20,69, com uma mediana de 21,09 e um desvio padrão de 2,42. Esse valor relativamente baixo de desvio padrão aponta para uma variabilidade pequena, com a maioria dos ginastas concentrados em torno da média, refletindo uma distribuição homogênea de IMC entre os atletas.
+
+Por fim, no Judô, a média do IMC é a mais alta entre os esportes analisados, com 25,61, enquanto a mediana é de 24,62 e o desvio padrão é de 5,05. Esse alto desvio padrão indica uma grande variabilidade entre os judocas, com um valor máximo de 56,5, sugerindo que alguns atletas possuem IMC significativamente mais altos, o que pode estar relacionado às exigências físicas do esporte, onde uma maior massa corporal é frequentemente vantajosa.
+
+Esses dados mostram que os judocas tendem a ter IMC mais elevados e variáveis, enquanto os ginastas possuem os menores valores de IMC e menor variabilidade. As diferenças de variabilidade e valores médios refletem as demandas físicas específicas de cada esporte, com esportes de força e contato, como o Judô, exigindo maior massa muscular, enquanto esportes que demandam agilidade, como Ginástica e Atletismo, favorecem IMC mais baixos.
+
+
+
 
 ### Normalidade
 
@@ -733,20 +729,39 @@ O teste de Shapiro-Wilk foi aplicado para cada esporte para verificar se os dado
 
 ```{r}
 # Verificar a normalidade dos dados com o teste de Shapiro-Wilk
-shapiro_results <- olimpiadas_IMC %>%
-  group_by(Esporte) %>%
-  summarise(n_obs = n(),p_value = ifelse(n_obs >= 3 & n_obs <= 5000,shapiro.test(IMC)$p.value,NA))
-shapiro_results$p_value <- format(shapiro_results$p_value, scientific = TRUE)
-knitr::kable(shapiro_results$p_value,caption = "Teste de Shapiro-Wilk",col.names = "P-valor")
+teste_shapiro<- shapiro.test(olimpiadas_IMC$IMC)
+
+# Formatar o p-valor em notação científica
+p_valor_shapiro <- format(teste_shapiro$p.value, scientific = TRUE)
+
+#knitr::kable(data.frame(P_valor = p_valor_shapiro), caption = "Teste de Shapiro-Wilk", col.names = "P-valor")
 ```
 
-$\begin{cases}
-    H_{0}: \mbox{A distribuição dos dados de IMC para cada esporte é normal.} \\
-    H_{1}: \mbox{A distribuição dos dados de IMC para cada esporte não é normal.} \\
-  \end{cases}
-$\\
 
-Os valores-p resultantes para todos os esportes foram extremamente baixos, menores que um nível de significância preestabelecido de 5%, indicando que os dados não seguem uma distribuição normal.
+\begin{center}
+\hipoteses{A distribuição dos dados de IMC para cada esporte é normal.}{A distribuição dos dados de IMC para cada esporte não é normal.}
+\end{center}
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{P-valor do Teste de Shapiro-Wilk}
+\setlength{\tabcolsep}{18pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|}
+       \hline
+       \textbf{Teste} & \textbf{P-valor} & \textbf{Decisão do teste} \\
+       \hline
+       Shapiro-Wilk & \textless 0,001 & Rejeita $H_0$ \\
+       \hline
+\end{tabular}
+\label{shapirowilk}
+\end{quadro}
+
+```
+
+
+O valor do p-valor resultante para todos os atletas dos esportes selecionados foi extremamente baixo, menores que um nível de significância preestabelecido de 5%, indicando que os dados não seguem uma distribuição normal.
 
 
 ### Teste de Kruskal-Wallis
@@ -763,20 +778,36 @@ result_df <- data.frame(
   Tamanho_da_amostra = nrow(olimpiadas)
 )
 result_df$p_value <- format(result_df$p_value, scientific = TRUE)
-knitr::kable(result_df, caption = "Teste de Kruskal-Wallis", col.names = c("","Estatística", "P-valor", "Grupos", "Tamanho amostral"))
+#knitr::kable(result_df, caption = "Teste de Kruskal-Wallis", col.names = c("","Estatística", "P-valor", "Grupos", "Tamanho amostral"))
 ```
-$\begin{cases}
-    H_{0}: \mbox{Não há diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC têm a mesma mediana entre os grupos.} \\
-    H_{1}: \mbox{Há pelo menos uma diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC diferem entre os grupos.} \\
-  \end{cases}
-$\\
 
+\begin{center}
+\hipoteses{Não há diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC têm a mesma mediana entre os grupos.}{Há pelo menos uma diferença significativa nas distribuições de IMC entre as modalidades esportivas; ou seja, os valores de IMC diferem entre os grupos.}
+\end{center}
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{P-valor do Teste de Kruskal-Wallis}
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|}
+       \hline
+        \textbf{Teste}& \textbf{Estatística do teste} & \textbf{P-valor} & \textbf{Decisão do teste}  \\
+       \hline
+       Kruskal-Wallis qui-quadrado & 1984,40 & \textless 0,001 & Rejeita $H_0$ \\
+       \hline
+\end{tabular}
+\label{kruskalwallis}
+\end{quadro}
+
+```
 O resultado do p-valor foi menor que 5%, indicando diferenças significativas do IMC entre os grupos de esportes.
 
 ## Top 3 medalhistas gerais por quantidade de cada tipo de medalha
 
 
-A análise tem como objetivo identificar os três atletas com mais medalhas nas Olimpíadas de 2000 (Sydney), 2004 (Atenas), 2008 (Pequim), 2012 (Londres) e 2016 (Rio), além de examinar a quantidade de cada tipo de medalha (ouro, prata e bronze) conquistada por eles. Também será investigada, por meio de métodos estatísticos como o teste qui-quadrado de independência, a existência de uma relação entre o atleta e o tipo de medalha.
+A análise tem como objetivo identificar os três atletas com mais medalhas nas Olimpíadas de 2000 a 2016, além de examinar a quantidade de cada tipo de medalha (ouro, prata e bronze) conquistada por eles. As variáveis utilizadas foram nome dos medalhistas variável qualitativa nominal, número de medalhas variável quantitativa discreta, tipo de medalha variável qualitativa nominal e quantidade de medalhas por tipo variável quantitativa discreta. Também será investigada, por meio de métodos estatísticos como o teste qui-quadrado de independência, a existência de uma relação entre o atleta e o tipo de medalha.
 
 ```{r, echo=FALSE}
 # 3) Top 3 medalhistas gerais por quantidade de cada tipo de medalha (27/10) ----
@@ -793,7 +824,6 @@ dados_medalha <- na.omit(dados_medalha)
 # str(dados_medalha)
 ```
 
-
 ```{r}
 medalhas_contadas <- dados_medalha %>%
   group_by(Nome) %>%
@@ -802,18 +832,30 @@ medalhas_contadas <- dados_medalha %>%
 top_3_medalhistas <- medalhas_contadas %>%
   top_n(3, Total_Medalhas)
 
-knitr::kable(top_3_medalhistas, caption = "Tabela dos Medalhistas e Total de Medalhas",col.names = c("Nome","Total de Medalhas"))
-```
-
-Com base na tabela, identifica-se que os três atletas com o maior número de medalhas em todas as edições analisadas foram: Michael Fred Phelps, II, com um total de 28 medalhas; Natalie Anne Coughlin, com 12 medalhas; e Ryan Steven Lochte, também com 12 medalhas.
-
-```{r}
 top_3_atletas <- dados_medalha %>%
   filter(Nome %in% top_3_medalhistas$Nome)
 
 tipo_medalha <- top_3_atletas %>%
   group_by(Nome, Medalha) %>%
   summarise(Count = n())
+
+# Nomes dos atletas
+nomes_atletas <- c(
+  "Michael Fred Phelps, II" = "Michael Fred Phelps",
+  "Natalie Anne Coughlin (-Hall)" = "Natalie Anne Coughlin",
+  "Ryan Steven Lochte" = "Ryan Steven Lochte"
+)
+
+top_3_medalhistas <- top_3_medalhistas %>% 
+  mutate(Nome = dplyr::recode(Nome, !!!nomes_atletas))
+
+top_3_atletas <- top_3_atletas %>% 
+  mutate(Nome = dplyr::recode(Nome, !!!nomes_atletas))
+
+tipo_medalha <- tipo_medalha %>% 
+  mutate(Nome = dplyr::recode(Nome, !!!nomes_atletas))
+
+# Tradução das medalhas
 
 traducoes_medalha <- c(
   "Gold" = "Ouro",
@@ -824,31 +866,97 @@ traducoes_medalha <- c(
 tipo_medalha <- tipo_medalha %>% 
   mutate(Medalha = dplyr::recode(Medalha, !!!traducoes_medalha))
 
+tipo_medalha <- tipo_medalha %>%
+  mutate(Medalha = factor(Medalha, levels = c("Ouro", "Prata", "Bronze")))
+
+
 olimpiadas <- olimpiadas %>% 
   mutate(Medalha = dplyr::recode(Medalha, !!!traducoes_medalha))
 
-knitr::kable(tipo_medalha, caption = "Tabela da Distribuição das Medalhas", col.names = c("Nome","Medalha","Quantidade"))
+olimpiadas <- olimpiadas %>%
+  mutate(Medalha = factor(Medalha, levels = c("Ouro", "Prata", "Bronze")))
+
 ```
 
-A distribuição das medalhas revelou-se diferenças significativas entre os atletas. Michael Phelps, que se destacou como o maior medalhista, conquistou 23 medalhas de ouro, 3 de prata e 2 de bronze, tendo um desempenho excepcional em conquistas medalhas de ouro. Natalie Coughlin, por outro lado, teve uma distribuição mais equilibrada, com 3 medalhas de ouro, 4 de prata e 5 de bronze. Já Ryan Lochte obteve 6 medalhas de ouro, 3 de prata e 3 de bronze, também apresentando um perfil balanceado em termos de tipo de medalha.
 
 ```{r fig.cap="Gráfico de barras da distribuição das medalhas", fig.align="center"}
 # Gráfico de barras mostrando a contagem de medalhas por tipo para os Top 3 atletas
+
 ggplot(tipo_medalha, aes(x = Nome, y = Count, fill = Medalha)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Distribuição de Medalhas para os Top 3 Atletas Olímpicos",
        x = "Atleta", y = "Quantidade de Medalhas") +
-  scale_fill_manual(values = c("#663333", "#CC9900", "#666666"))
+  scale_fill_manual(values = c("#A11D21", "#003366", "#CC9900"))
 ```
+
 A distribuição das medalhas foi visualizada em um gráfico de barras que evidenciou o predomínio de medalhas de ouro nas conquistas de Michael Phelps, enquanto Natalie Coughlin e Ryan Lochte apresentaram uma proporção mais distribuída entre os diferentes tipos de medalha.
+
+```{r}
+
+#knitr::kable(top_3_medalhistas, caption = "Tabela dos Medalhistas e Total de Medalhas",col.names = c("Nome","Total de Medalhas"))
+```
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Tabela dos Medalhistas e Total de Medalhas}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|}
+       \hline
+       \textbf{Nome} & \textbf{Total de Medalhas} \\
+       \hline
+       Michael Fred Phelps & 28 \\
+       Natalie Anne Coughlin & 12 \\
+       Ryan Steven Lochte & 12 \\
+       \hline
+\end{tabular}
+\label{medalhistas}
+\end{quadro}
+
+```
+
+Com base na tabela, identifica-se que os três atletas com o maior número de medalhas em todas as edições analisadas foram: Michael Fred Phelps, II, com um total de 28 medalhas; Natalie Anne Coughlin, com 12 medalhas; e Ryan Steven Lochte, também com 12 medalhas.
+
+```{r}
+
+#knitr::kable(tipo_medalha, caption = "Tabela da Distribuição das Medalhas", col.names = c("Nome","Medalha","Quantidade"))
+```
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Tabela da Distribuição das Medalhas}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|}
+       \hline
+       \textbf{Nome} & \textbf{Medalha} & \textbf{Quantidade} \\
+       \hline
+       Michael Fred Phelps & Ouro & 23 \\
+       Michael Fred Phelps & Prata & 3 \\
+       Michael Fred Phelps & Bronze & 2 \\
+       Natalie Anne Coughlin & Ouro & 3 \\
+       Natalie Anne Coughlin & Prata & 4 \\
+       Natalie Anne Coughlin & Bronze & 5 \\
+       Ryan Steven Lochte & Ouro & 6 \\
+       Ryan Steven Lochte & Prata & 0 \\
+       Ryan Steven Lochte & Bronze & 3 \\
+       \hline
+\end{tabular}
+\label{distribuicao_medalhas}
+\end{quadro}
+
+```
+
+A distribuição das medalhas revelou-se diferenças significativas entre os atletas. Michael Phelps, que se destacou como o maior medalhista, conquistou 23 medalhas de ouro, 3 de prata e 2 de bronze, tendo um desempenho excepcional em conquistas medalhas de ouro. Natalie Coughlin, por outro lado, teve uma distribuição mais equilibrada, com 3 medalhas de ouro, 4 de prata e 5 de bronze. Já Ryan Lochte obteve 6 medalhas de ouro, 3 de prata e 3 de bronze, também apresentando um perfil balanceado em termos de tipo de medalha.
 
 Podemos confirmar matematicamente fazendo um teste de independência.
 
-$\begin{cases}
-    H_{0}: \mbox{Não há relação entre o medalhista e o tipo de medalha conquistada. Em outras palavras, a quantidade de medalhas de ouro, prata e bronze é distribuída de forma independente entre os três atletas analisados.} \\
-    H_{1}: \mbox{Existe uma relação entre o medalhista e o tipo de medalha conquistada. Isso significa que a distribuição das medalhas de ouro, prata e bronze varia significativamente entre os três atletas.} \\
-  \end{cases}
-$\\
+\begin{center}
+\hipoteses{A diferença entre homens e mulheres segue uma distribuição simétrica em torno de zero}{A diferença entre homens e mulheres não segue uma distribuição simétrica em torno de zero}
+\end{center}
+
 
 ```{r}
 tabela_medalha <- table(top_3_atletas$Nome, top_3_atletas$Medalha)
@@ -860,17 +968,34 @@ teste_qui_df <- data.frame(
   P_valor = teste_qui$p.value
 )
 
-knitr::kable(teste_qui_df, caption = "Resultados do teste qui-quadrado",col.names = c("","Estatítica","Graus de Liberdade","P-valor"))
+#knitr::kable(teste_qui_df, caption = "Resultados do teste qui-quadrado",col.names = c("","Estatítica","Graus de Liberdade","P-valor"))
 
 ```
 
-Para verificar se existia uma relação estatisticamente significativa entre os atletas e os tipos de medalhas, realizo-se um teste qui-quadrado de independência. Os resultados do teste indicaram um valor de X-quadrado de 12,776 com 4 graus de liberdade e um valor-p de 0,01243. Este valor-p, sendo inferior ao nível de significância de 5%, que levou a rejeitar a hipótese nula de independência entre as variáveis. Ou seja, os resultados indicam que existe uma relação significativa entre os atletas analisados e os tipos de medalhas que conquistaram. Isso sugere que a distribuição das medalhas de ouro, prata e bronze não ocorre de forma uniforme entre os três atletas, havendo diferenças marcantes.
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Resultados do teste Qui-Quadrado}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|c|}
+       \hline
+       \textbf{Estatística} & \textbf{Estatísticado teste} & \textbf{Graus de Liberdade} & \textbf{P-valor} &\textbf{Decisão do teste} \\
+       \hline
+       X-quadrado & 12.77 & 4 &  0,012 & Rejeita $H_0$ \\
+       \hline
+\end{tabular}
+\label{resultado_quadrado}
+\end{quadro}
+
+```
+
+Para verificar se existia uma relação estatisticamente significativa entre os atletas e os tipos de medalhas, realizo-se um teste qui-quadrado de independência. Os resultados do teste indicaram um valor de X-quadrado de 12,77 com 4 graus de liberdade e um valor-p de 0,012. Este valor-p, sendo inferior ao nível de significância de 5%, que levou a rejeitar a hipótese nula de independência entre as variáveis. Ou seja, os resultados indicam que existe uma relação significativa entre os atletas analisados e os tipos de medalhas que conquistaram. Isso sugere que a distribuição das medalhas de ouro, prata e bronze não ocorre de forma uniforme entre os três atletas, havendo diferenças marcantes.
 
 
 ## Variação Peso por Altura
 
-
-A análise realizada tem como objetivo compreender a relação entre o peso e a altura dos atletas, investigando se existe uma correlação direta entre essas variáveis. Em outras palavras, a análise busca responder se, à medida que o peso aumenta, a altura dos atletas também tende a aumentar, ou se não há uma relação clara entre essas duas características físicas. Para essa análise, são utilizadas as variáveis peso e altura, ambas sendo variáveis quantitativas contínuas.
+A análise realizada tem como objetivo compreender a relação entre o peso e a altura dos atletas, investigando se existe uma correlação direta entre essas variáveis. Em outras palavras, a análise busca responder se, à medida que o peso aumenta, a altura dos atletas também tende a aumentar, ou se não há uma relação clara entre essas duas características físicas. Para essa análise, são utilizadas as variáveis peso e altura, ambas sendo variáveis quantitativas contínuas. A altura para essa análise pode variar de 1,39 a 2,07 e o peso para essa análise pode variar de 30,9 a 174,9.
 
 
 ```{r}
@@ -879,7 +1004,114 @@ A análise realizada tem como objetivo compreender a relação entre o peso e a 
 # a altura também aumenta? Ou o contrário, ou não tem diferença, ou não dá pra inferir nada?
 
 olimpiadas_Alt_Pes <- olimpiadas %>%
-  filter(!is.na(Medalha),!is.na(Altura),!is.na(Peso))
+  filter(!is.na(Medalha),!is.na(Altura),!is.na(Peso))%>%
+  distinct(Nome, .keep_all = TRUE)
+```
+
+```{r fig.cap="Gráfico de disperssão da Altura e Peso dos Atletas", fig.align="center"}
+ggplot(olimpiadas_Alt_Pes) +
+  aes(x = Altura, y = Peso) +
+  geom_point(color = "#A11D21", size = 2,alpha = 0.5) +
+  geom_smooth(method = "lm", size = 0.8, color = "#041835") +
+  labs(
+    x = "Altura (m)",
+    y = "Peso (kg)"
+  ) +
+  theme_estat()
+```
+
+Pode-se observar uma correlação positiva entre altura e peso, onde, à medida que a altura dos atletas aumenta, o peso tende a aumentar também.  Sugerindo que atletas mais altos geralmente têm um peso. A dispersão dos pontos em torno da linha de tendência mostra, no entanto, uma variação considerável. Atletas de mesma altura apresentam pesos diferentes, o que pode refletir a diversidade de esportes e de composição corporal, onde fatores como a quantidade de massa muscular e gordura influenciam significativamente o peso.
+
+
+```{r fig.cap="Distribuição da Altura dos Atletas", fig.align="center"}
+# 2. Verificação de Normalidade com Gráficos de Distribuição
+ggplot(olimpiadas_Alt_Pes, aes(x = Altura)) +
+  geom_histogram(binwidth = 0.05, fill = "#A11D21", colour = "white") +
+  labs(x = "Altura (m)", y = "Frequência") +
+  theme_estat()
+```
+
+O gráfico da distribuição da altura dos atletas apresenta uma forma aproximadamente simétrica, centrada em torno de 1,75 metros, sugerindo que a maioria dos atletas tem altura próxima desse valor. A distribuição tem um padrão semelhante ao de uma distribuição normal, embora possa haver uma leve assimetria ou variação nas caudas, o que seria melhor avaliado com testes específicos de normalidade.
+
+```{r fig.cap="Distribuição do Peso dos Atletas", fig.align="center"}
+ggplot(olimpiadas_Alt_Pes, aes(x = Peso)) +
+  geom_histogram(binwidth = 7, fill = "#A11D21", colour = "white") +
+  labs( x = "Peso (kg)", y = "Frequência")+
+  theme_estat()
+```
+
+O gráfico da distribuição do peso dos atletas mostra que é mais assimétrica e apresenta uma cauda longa à direita, indicando que há atletas com pesos mais elevados, mas que representam uma menor proporção da amostra. A maior concentração está entre 50 e 80 kg, o que sugere uma tendência mais centralizada dentro dessa faixa. Essa assimetria positiva é comum em variáveis como peso, onde existem poucos valores muito altos.
+
+```{r}
+# Análise Diagnóstica do Modelo (Diagnóstico de resíduos)
+
+modelo_simples <- lm(Altura ~ Peso, data = olimpiadas_Alt_Pes)
+summary_modelo <- summary(modelo_simples)
+
+
+residuos <- rstandard(modelo_simples)  # resíduos padronizados
+valores_ajustados <- fitted(modelo_simples)  # valores ajustados
+dados <- data.frame(residuos, valores_ajustados)
+
+# Gráfico 1: Residuals vs Fitted
+g1 <- ggplot(dados, aes(x = valores_ajustados, y = residuos)) +
+  geom_point(color = "#A11D21", alpha = 0.6) +
+  geom_smooth(method = "loess", color = "black", se = FALSE) +
+  labs(x = "Valores Ajustados", y = "Resíduos Padronizados") +
+  ggtitle("Resíduos vs Ajustados") +
+  theme_minimal()
+
+# Gráfico 2: Q-Q Plot dos Resíduos
+g2 <- ggplot(dados, aes(sample = residuos)) +
+  stat_qq(color = "#A11D21") +
+  stat_qq_line(size = 0.8, color = "black") +
+  labs(x = "Quantis Teóricos", y = "Resíduos Padronizados") +
+  ggtitle("Q-Q Plot") +
+  theme_minimal()
+
+# Gráfico 3: Scale-Location Plot
+g3 <- ggplot(dados, aes(x = valores_ajustados, y = sqrt(abs(residuos)))) +
+  geom_point(color = "#A11D21", alpha = 0.6) +
+  geom_smooth(method = "loess", color = "black", se = FALSE) +
+  labs(x = "Valores Ajustados", y = "Resíduos Padronizados") +
+  ggtitle("Localização da escala") +
+  theme_minimal()
+
+# Gráfico 4: Residuals vs Leverage
+g4 <- ggplot(data.frame(residuos, leverage = hatvalues(modelo_simples)), aes(x = leverage, y = residuos)) +
+  geom_point(color = "#A11D21", alpha = 0.6) +
+  geom_smooth(method = "loess", color = "black", se = FALSE) +
+  labs(x = "Leverage", y = "Resíduos Padronizados") +
+  ggtitle("Resíduos vs Alavancagem") +
+  theme_minimal()
+
+# Combinando os gráficos
+(g1 | g2) / (g3 | g4)
+```
+
+
+
+Para o gráfico resíduos vs ajustados avalia-se a suposição de linearidade e se a variância dos resíduos é constante. Neste caso, a falta de um padrão claro nos resíduos ao redor de zero indica uma possível adequação, mas a leve tendência curvada sugere alguma possível violação de linearidade. No gráfico q-q plot verifica-se a normalidade dos resíduos. No seu gráfico, a maioria dos pontos segue a linha teórica, mas há desvios nas extremidades, o que indica que os resíduos podem não ser perfeitamente normais (presença de caudas mais pesadas). Já o gráfico localizaçãoda escala também verifica-se a homocedasticidade,ou seja, variância constante dos resíduos. Uma tendência ascendente indica que a variância dos resíduos aumenta com os valores ajustados, sugerindo heterocedasticidade. Por fim, para os resíduos vs alavancagem mostra que a influência de pontos específicos. Observações fora das linhas de Cook’s distance podem ser pontos influentes que afetam o modelo de forma desproporcional. Neste gráfico, alguns pontos aparecem próximos às linhas, o que indica que esses pontos podem ter grande influência na regressão.
+
+```{r}
+print_quadro <- function(data, var_name, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1") {
+  var_name <- substitute(var_name)
+  data <- data %>%
+    summarize(
+      `Média` = round(mean(!!sym(var_name)), 2),
+      `Desvio Padrão` = round(sd(!!sym(var_name)), 2),
+      `Variância` = round(var(!!sym(var_name)), 2),
+      `Mínimo` = round(min(!!sym(var_name)), 2),
+      `1º Quartil` = round(quantile(!!sym(var_name), probs = 0.25), 2),
+      `Mediana` = round(quantile(!!sym(var_name), probs = 0.5), 2),
+      `3º Quartil` = round(quantile(!!sym(var_name), probs = 0.75), 2),
+      `Máximo` = round(max(!!sym(var_name)), 2)
+    ) %>%
+    t() %>%
+    as.data.frame() %>%
+    rownames_to_column("Estatística")
+  print(data)
+}
 ```
 
 ```{r}
@@ -895,9 +1127,42 @@ estatisticas_Altura <- olimpiadas_Alt_Pes %>%
             Desvio_padrão = sd(IMC, na.rm = TRUE),
             Mín = min(IMC, na.rm = TRUE),
             Máx = max(IMC, na.rm = TRUE))
-knitr::kable(estatisticas_Altura, caption = "Tabela das estatísticas descritivas da Altura dos Atletas", col.names = c("Altura","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
+#knitr::kable(estatisticas_Altura, caption = "Tabela das estatísticas descritivas da Altura dos Atletas", col.names = c("Altura","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
 ```
-A Tabela 7 observa-se que a média e a mediana da altura aumentam conforme os intervalos se expandem, sugerindo uma tendência de crescimento no porte físico dos atletas nos intervalos superiores. O desvio padrão também é maior nos grupos com atletas mais altos, indicando que há uma maior variação de altura entre esses competidores. Além disso, a diferença entre os valores mínimos e máximos em cada faixa evidencia a diversidade de estaturas, mostrando que atletas de alturas variadas competem em diferentes esportes, dependendo das exigências físicas de cada modalidade.
+
+```{r}
+#print_quadro(olimpiadas_Alt_Pes, "Altura", title = "Medidas resumo da Altura", label = "quad:quadro_resumo_altura")
+
+```
+
+```{=latex}
+\begin{quadro}[H]
+	\setlength{\tabcolsep}{9pt}
+	\renewcommand{\arraystretch}{1.20}
+	\caption{Medidas resumo da Altura}
+	\centering
+	\begin{tabular} { | l |
+			S[table-format = 1.2]
+			|}
+	\hline
+		\textbf{Estatística} & \textbf{Valor} \\
+		\hline
+		Média & 1.78 \\
+		Desvio Padrão & 0.12 \\
+		Variância & 0.01 \\
+		Mínimo & 1.37 \\
+		1º Quartil & 1.70 \\
+		Mediana & 1.78 \\
+		3º Quartil & 1.86 \\
+		Máximo & 2.19 \\
+	\hline
+	\end{tabular}
+	\label{quad:quadro_resumo_v11}
+\end{quadro}
+
+```
+
+Com base no quadro 7 temos qua a média da altura é de 1,78 metros, indicando que, em geral, os indivíduos têm uma estatura próxima a esse valor. O desvio padrão de 0,12 metros mostra que há uma variação pequena ao redor da média, sugerindo que a maioria dos indivíduos tem alturas próximas a essa média. A variância, outra medida de dispersão, é de 0,01, o que confirma essa baixa variabilidade. Quanto aos valores extremos e à distribuição da altura, o mínimo é de 1,37 metros e o máximo é de 2,19 metros, o que estabelece o intervalo total das alturas observadas. 
 
 ```{r}
 estatisticas_Peso <- olimpiadas_Alt_Pes %>%
@@ -908,26 +1173,45 @@ estatisticas_Peso <- olimpiadas_Alt_Pes %>%
             Desvio_padrão = sd(IMC, na.rm = TRUE),
             Mín = min(IMC, na.rm = TRUE),
             Máx = max(IMC, na.rm = TRUE))
-knitr::kable(estatisticas_Peso, caption = "Tabela das estatísticas descritivas do Peso dos Atletas", col.names = c("Peso","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
+#knitr::kable(estatisticas_Peso, caption = "Tabela das estatísticas descritivas do Peso dos Atletas", col.names = c("Peso","Tamanho Amostral","Média","Mediana","Desvio padrão","Min","Max"))
 ```
-
-A Tabela 8 fornece uma análise focada nos intervalos de peso. Assim como na altura, a média e a mediana do peso dos atletas aumentam de forma progressiva ao longo dos intervalos, refletindo a categorização por faixas de peso. Os valores de desvio padrão sugerem uma maior variação nos grupos intermediários, onde há uma maior diversidade de composição corporal. A diferença entre os valores mínimos e máximos dentro de cada intervalo também mostra a diversidade de pesos, o que pode ser um reflexo das exigências físicas de diferentes esportes, onde atletas podem precisar de mais ou menos massa corporal para obter desempenho ideal.
 
 ```{r}
-ggplot(olimpiadas_Alt_Pes) +
-  aes(x = Altura, y = Peso) +
-  geom_point(color = "#A11D21", size = 3) +
-  geom_smooth(method = "lm", size = 0.8, color = "#041835") +
-  labs(
-    title = "Relação entre Peso e Altura dos Atletas",
-    x = "Altura (cm)",
-    y = "Peso (kg)"
-  ) +
-  theme_estat()
+
+#print_quadro(olimpiadas_Alt_Pes, "Peso", title = "Medidas resumo do Peso", label = "quad:quadro_resumo_peso")
 
 ```
 
-Pode-se observar uma correlação positiva entre altura e peso, onde, à medida que a altura dos atletas aumenta, o peso tende a aumentar também.  Sugerindo que atletas mais altos geralmente têm um peso. A dispersão dos pontos em torno da linha de tendência mostra, no entanto, uma variação considerável. Atletas de mesma altura apresentam pesos diferentes, o que pode refletir a diversidade de esportes e de composição corporal, onde fatores como a quantidade de massa muscular e gordura influenciam significativamente o peso.
+```{=latex}
+\begin{quadro}[H]
+	\setlength{\tabcolsep}{9pt}
+	\renewcommand{\arraystretch}{1.20}
+	\caption{Medidas resumo do Peso}
+	\centering
+	\begin{tabular} { | l |
+			S[table-format = 3.2]
+			|}
+	\hline
+		\textbf{Estatística} & \textbf{Valor} \\
+		\hline
+		Média & 74.15 \\
+		Desvio Padrão & 16.25 \\
+		Variância & 264.13 \\
+		Mínimo & 28.00 \\
+		1º Quartil & 63.00 \\
+		Mediana & 72.00 \\
+		3º Quartil & 84.00 \\
+		Máximo & 175.00 \\
+	\hline
+	\end{tabular}
+	\label{quad:quadro_resumo_v11}
+\end{quadro}
+
+```
+
+De acordo com o quadro 8 a média do peso dos atletas é de 74,15 kg, indicando o valor central dessa distribuição. O desvio padrão de 16,25 kg indica a variabilidade ou dispersão dos valores em torno da média, sendo assim o peso dos atletas está relativamente disperso. A variância é de 264,13, mopstrando uma alta dispersão dos dados. O mínimo registrado é 28 kg, enquanto o máximo chega a 175 kg, o que mostra uma grande variabilidade de pesos entre os atletas. Os quartis dividem os dados em quatro partes iguais, sendo o primeiro quartil 63 kg, a mediana 72 kg e o terceiro quartil 84 kg. A mediana indica que metade dos atletas tem peso abaixo de 72 kg e a outra metade acima, enquanto o intervalo interquartil ( 84 - 63 = 21) sugere que a maior parte dos atletas tem pesos concentrados entre 63 kg e 84 kg.
+
+
 
 
 ```{r}
@@ -942,53 +1226,59 @@ norm.pes <- ad.test(olimpiadas_Alt_Pes$Peso)
 norm.alt.df <- data.frame(Statistic = norm.alt$statistic, P.Value = norm.alt$p.value)
 norm.pes.df <- data.frame(Statistic = norm.pes$statistic, P.Value = norm.pes$p.value)
 
-knitr::kable(norm.alt.df, caption = "Tabela da normalidade da Altura dos Atletas", col.names = c("Estatística", "Valor P"))
-knitr::kable(norm.pes.df, caption = "Tabela da normalidade do Peso dos Atletas", col.names = c("Estatística", "Valor P"))
+#knitr::kable(norm.alt.df, caption = "Tabela da normalidade da Altura dos Atletas", col.names = c("Estatística", "Valor P"))
+#knitr::kable(norm.pes.df, caption = "Tabela da normalidade do Peso dos Atletas", col.names = c("Estatística", "Valor P"))
 
 ```
-$\begin{cases}
-    H_{0}: \mbox{Os dados vêm de uma distribuição normal} \\
-    H_{1}: \mbox{Os dados não vêm de uma distribuição normal} \\
-  \end{cases}
-$\\
+
+\begin{center}
+\hipoteses{Os dados vêm de uma distribuição normal}{Os dados não vêm de uma distribuição normal}
+\end{center}
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Tabela da Normalidade da Altura dos Atletas}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|}
+       \hline
+       \textbf{Estatística} & \textbf{Valor} & \textbf{P-valor} & \textbf{Decisão do teste} \\
+       \hline
+       A & 6,42 & \textless 0,001 & Rejeita $H_0$ \\
+       \hline
+\end{tabular}
+\label{resultado_normalidade}
+\end{quadro}
+```
+
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Tabela da Normalidade do Peso dos Atletas}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|}
+       \hline
+       \textbf{Estatística} & \textbf{Valor} & \textbf{P-valor} & \textbf{Decisão do teste} \\
+       \hline
+       A & 40,83 & \textless 0,001 & Rejeita $H_0$ \\
+       \hline
+\end{tabular}
+\label{resultado_normalidade_peso}
+\end{quadro}
+
+```
 
 Para verificar se essas variáveis seguem uma distribuição normal, foi realizado o Teste de Anderson-Darling, que é utilizado para avaliar a normalidade dos dados de grandes amostras. Tanto para a altura quanto para o peso, os resultados apontaram p-valores extremamente baixos, o que leva à rejeição da hipótese nula de normalidade. Isso indica que tanto o peso quanto a altura dos atletas não seguem uma distribuição normal, sendo distribuídos de maneira assimétrica.
 
 ```{r}
-olimpiadas_Alt_Pes$Altura_Bin <- cut(olimpiadas_Alt_Pes$Altura, breaks = seq(1.3, 2.2, by = 0.1), right = FALSE)
 
-olimpiadas_Alt_Pes$Peso_Bin <- cut(olimpiadas_Alt_Pes$Peso, breaks = seq(20, 120, by = 10), right = FALSE)
-
-bartlett_result <- bartlett.test(Altura ~ Peso_Bin, data = olimpiadas_Alt_Pes)
-
-bartlett_df <- data.frame(Statistic = bartlett_result$statistic, P.Value = bartlett_result$p.value)
-
-knitr::kable(bartlett_df, caption = "Teste de Bartlett para homogeneidade de variâncias entre grupos de peso", col.names = c("Estatística", "P-valor"))
+resutado_corre <- cor(olimpiadas_Alt_Pes$Altura, olimpiadas_Alt_Pes$Peso, method = "pearson")
+#cat("Coeficiente de Correlação de Pearson entre Altura e Peso:", resutado_corre, "\n")
 
 ```
-$\begin{cases}
-    H_{0}: \mbox{As variâncias dos grupos são iguais} \\
-    H_{1}: \mbox{Pelo menos uma das variâncias é diferente} \\
-  \end{cases}
-$\\
 
-```{r}
-library(car)
-
-levene_result <- leveneTest(Altura ~ Peso_Bin, data = olimpiadas_Alt_Pes)
-
-levene_df <- as.data.frame(levene_result)
-
-knitr::kable(levene_df, caption = "Teste de Levene para homogeneidade de variâncias entre grupos de peso")
-
-```
-$\begin{cases}
-    H_{0}: \mbox{As variâncias dos grupos são iguais} \\
-    H_{1}: \mbox{Pelo menos uma das variâncias é diferente} \\
-  \end{cases}
-$\\
-
-O Teste de Bartlett e o Teste de Levene foram conduzidos e ambos indicaram resultados significativos, com os p-valores extremamente baixos. Isso sugere que as variâncias entre os grupos de diferentes faixas de peso não são homogêneas, ou seja, há uma diferença significativa nas variâncias entre os grupos, o que pode afetar a análise de correlação entre as variáveis.
 
 ```{r}
 modelo_simples <- lm(Altura ~ Peso, data = olimpiadas_Alt_Pes)
@@ -996,16 +1286,60 @@ summary_modelo <- summary(modelo_simples)
 
 coeficientes_df <- as.data.frame(summary_modelo$coefficients)
 
-knitr::kable(coeficientes_df, caption = "Resultados da Regressão Linear Simples para Altura em função do Peso", col.names = c("Estimativa", "Erro Padrão", "Estatística t", "P-valor"))
+# knitr::kable(coeficientes_df, caption = "Resultados da Regressão Linear Simples para Altura em função do Peso", col.names = c("Estimativa", "Erro Padrão", "Estatística t", "P-valor"))
+
+```
+
+```{=latex}
+
+\begin{quadro}[H]
+\centering
+\caption{Resultados da Regressão Linear Simples para Altura em função do Peso}
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|c|}
+       \hline
+       \textbf{Variável} & \textbf{Estimativa} & \textbf{Erro Padrão} & \textbf{Estatística t} & \textbf{P-valor} \\
+       \hline
+       Intercepto & 1,36 & 0,01 & 348,08 & \textless 0,001 \\
+       Peso & 0,01 & 0,001 & 111,37 & \textless 0,001\\
+       \hline
+\end{tabular}
+\label{resultado_regressao_linear}
+\end{quadro}
 
 ```
 
 Para investigar a relação entre peso e altura, foi realizada uma análise de regressão linear, onde a altura foi ajustada em função do peso. O modelo ajustado revelou uma equação onde a altura aumenta conforme o peso aumenta. O coeficiente de regressão associado ao peso foi positivo e estatisticamente significativo, reforçando a ideia de que há uma relação positiva entre as duas variáveis.
 
+```{r, echo=FALSE}
 
+#cat("Resultado do teste F da regressão (p-valor):", summary(modelo_simples)$coefficients[2,4], "\n")
+#if (summary(modelo_simples)$coefficients[2,4] < 0.05) {
+#  cat("O efeito do Peso sobre a Altura é estatisticamente significativo.\n")
+#} else {
+#  cat("O efeito do Peso sobre a Altura NÃO é estatisticamente significativo.\n")
+#}
+```
 
+```{=latex}
+\begin{quadro}[H]
+\centering
+\caption{Resultado do Teste F da Regressão}
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|}
+       \hline
+       \textbf{Teste} & \textbf{P-valor}  \\
+       \hline
+       Teste F da Regressão & \textless 0,001  \\
+       \hline
+\end{tabular}
+\label{testef}
+\end{quadro}
+```
 
-
+O teste F realizado na regressão revelou um p-valor de < 0,001, indicando que o efeito do peso sobre a altura é estatisticamente significativo ao nível de 5%. Isso implica que a variação no peso dos atletas está significativamente associada a variações na altura, com uma probabilidade muito baixa de que essa associação seja devida ao acaso. Esse resultado nos permite concluir que há uma relação linear significativa entre as variáveis peso e altura para o conjunto de dados analisado. Contudo, é importante destacar que, embora a significância estatística indique uma associação, ela não revela a intensidade da relação, que pode ser observada pelo coeficiente de correlação de Pearson (0,79), além do coeficiente de determinação na análise de regressão.
 
 
 
@@ -1013,14 +1347,15 @@ Para investigar a relação entre peso e altura, foi realizada uma análise de r
 
 # Conclusões
 
-A  primeira análise dos países com o maior número de mulheres medalhistas nos Jogos Olímpicos de 2000 a 2016 revelou um destaque claro dos Estados Unidos, que lideram com uma grande margem, possuindo 741 medalhistas, o que representa 34,48% do total. Em seguida, a Rússia ocupa a segunda posição com 416 medalhistas (19,36%), a China aparece logo atrás, com 384 medalhistas (17,87%). Austrália e Alemanha completam o Top 5, com 340 (15,82%) e 268 (12,47%) medalhistas, respectivamente.A diferença expressiva entre os Estados Unidos e os demais países sugere uma forte tradição e investimento no esporte feminino, refletindo-se em um número maior de atletas de alto nível. Por outro lado, Rússia e China também se destaquem, a diferença na quantidade de medalhistas são significativamente menores quando comparadas aos Estados Unidos.
+A diferença expressiva entre os Estados Unidos e os demais países sugere uma forte tradição e investimento no esporte feminino, refletindo-se em um número maior de atletas de alto nível. Por outro lado, Rússia e China também se destaquem, a diferença na quantidade de medalhistas são significativamente menores quando comparadas aos Estados Unidos.
 
-Na segunda análise observou-se diferenças significativas no IMC entre as modalidades esportivas analisadas (Atletismo, Badminton, Futebol, Ginástica e Judô). Devido à não normalidade dos dados, foi aplicado o teste de Kruskal-Wallis, que confirmou essas diferenças. O Judô apresentou os maiores valores de IMC, refletindo um perfil corporal robusto, enquanto Ginástica e Atletismo mostraram IMCs mais baixos, associados à agilidade. Futebol e Badminton ficaram em posição intermediária, com valores de IMC superiores aos de Ginástica e Atletismo, mas abaixo dos do Judô.
+Notou-se diferenças significativas no IMC entre as modalidades esportivas analisadas (Atletismo, Badminton, Futebol, Ginástica e Judô). Devido à não normalidade dos dados, foi aplicado o teste de Kruskal-Wallis, que confirmou essas diferenças. O Judô apresentou os maiores valores de IMC, refletindo um perfil corporal robusto, enquanto Ginástica e Atletismo mostraram IMCs mais baixos, associados à agilidade. Futebol e Badminton ficaram em posição intermediária, com valores de IMC superiores aos de Ginástica e Atletismo, mas abaixo dos do Judô.
 
-Na terceira análise mostrou que há diferenças significativas na forma como os três principais medalhistas olímpicos conquistaram suas medalhas, com Phelps se destacando pelo número expressivo de ouros, enquanto Coughlin e Lochte apresentaram maior equilíbrio entre os diferentes tipos de medalha. Essas diferenças são estatisticamente relevantes, conforme evidenciado pelo teste qui-quadrado, e refletem as particularidades de desempenho de cada atleta ao longo de suas participações olímpicas. Esse entendimento pode contribuir para análises futuras sobre o impacto de diferentes fatores (como modalidade esportiva, preparo físico e características pessoais) no desempenho dos atletas olímpicos mais bem-sucedidos.
+Observou-se que os três principais medalhistas olímpicos – Phelps, Coughlin e Lochte – têm padrões distintos de conquistas de medalhas. Phelps se destacou pela grande quantidade de ouros, enquanto Coughlin e Lochte apresentaram um equilíbrio maior entre as diferentes medalhas. Esse padrão foi confirmado pelo teste qui-quadrado, evidenciando a diversidade no desempenho dos atletas e como diferentes fatores podem influenciar o sucesso olímpico.
 
 
-A quarta análise mostra que há uma correlação positiva significativa entre o peso e a altura dos atletas.
+Por fim, confirmou-se uma correlação positiva significativa entre o peso e a altura dos atletas, reforçando a ideia de que, em muitas modalidades, existe uma relação entre essas características físicas. Esse resultado abre portas para investigações mais detalhadas sobre como as características corporais podem impactar o desempenho nos Jogos Olímpicos.
+
 
 
 

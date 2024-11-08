@@ -228,7 +228,7 @@ range-phrase = { \GetTranslation{to (numerical range)} },
         align=flush left,
         ] 
         at +(1cm, -8.9cm)
-        {{\fontsize{38}{0}\selectfont\@title}};%
+        {{\fontsize{22}{0}\selectfont\@title}};%
     \end{scope}
 
     \begin{scope}[node distance=0.5cm, text width= 6cm, align=flush left, anchor=north east]
@@ -339,17 +339,15 @@ range-phrase = { \GetTranslation{to (numerical range)} },
     \end{tikzpicture}
 }
 
-\newcommand{\hipoteses}[2]{% 
+\newcommand{\hipoteses}[2]{%
 \par
-\begin{center} % Inicia o ambiente de centralização
 $$
     \begin{cases}
-        H_{0}: \text{#1} \\ % Mantém o texto normal para melhor centralização
-        H_{1}: \text{#2} \\
+        H_{0}: \parbox[t]{2\textwidth/3}{#1} \\
+        H_{1}: \parbox[t]{2\textwidth/3}{#2} \\
     \end{cases}
 $$
-\end{center} % Termina o ambiente de centralização
-\par
+\newline
 }
 
 
