@@ -432,7 +432,7 @@ As variáveis quantitativas são as variáveis numéricas, que representam carac
 
 O teste de hipóteses tem como objetivo fornecer uma metodologia para verificar se os dados das amostras possuem indicativos que comprovem, ou não, uma hipótese previamente formulada. Ele é composto por duas hipóteses:
 
-\hipoteses{hipótese a ser testada (chamada de hipótese nula)}{hipótese alternativa que será aceita caso a hipótese nula seja rejeitada}
+\hipoteses{hipótese a ser testada (chamada de hipótese nula).}{hipótese alternativa que será aceita caso a hipótese nula seja rejeitada.}
 
 Essa decisão é tomada por meio da construção de uma região crítica, ou seja, região de rejeição do teste.
 
@@ -445,7 +445,7 @@ O **P-valor**, ou nível descritivo, é uma medida utilizada para sintetizar o r
 
 O **Teste de Shapiro-Wilk** é utilizado para verificar a aderência de uma variável quantitativa ao modelo da Distribuição Normal, sendo mais recomendado para amostras pequenas. A suposição de normalidade é importante para a determinação do teste a ser utilizado. As hipóteses a serem testadas são:
 
-\hipoteses{A variável segue uma distribuição Normal}{A variável segue outro modelo}
+\hipoteses{A variável segue uma distribuição Normal.}{A variável segue outro modelo.}
 
 A amostra deve ser ordenada de forma crescente para que seja possível obter as estatísticas de ordem. A estatística do teste é dada por:
 
@@ -468,7 +468,7 @@ O teste de Kruskal-Wallis é utilizado para comparar dois ou mais grupos indepen
 
 As hipóteses do teste de Kruskal-Wallis são formuladas da seguinte maneira:
 
-\hipoteses{Não existe diferença entre os grupos}{Pelo menos um grupo difere dos demais}
+\hipoteses{Não existe diferença entre os grupos.}{Pelo menos um grupo difere dos demais.}
 
 A estatística do teste de Krukal-Waliis é definida da seguinte maneira:
 
@@ -496,7 +496,7 @@ Se o p-valor for menor que o nível de significância $\alpha$, rejeita-se a hip
 O **teste de Normalidade de Anderson-Darling** é utilizado para verificar se uma amostra aleatória $X_1, X_2, ..., X_n$ de uma variável quantitativa segue uma distribuição Normal de probabilidade ou não. O teste possui as seguintes hipóteses:
 
 \begin{center}
-\hipoteses{A variável segue uma distribuição Normal}{A variável segue outro modelo}
+\hipoteses{A variável segue uma distribuição Normal.}{A variável segue outro modelo.}
 \end{center}
 
 Se a hipótese nula for verdadeira, espera-se que o p-valor esteja acima do nível de significância $\alpha$.
@@ -524,6 +524,20 @@ Os coeficientes são interpretados de maneira semelhante: $\beta_0$ indica o val
 -   Os erros seguem distribuição normal com média igual a zero
 -   A variância do erros é constante
 -   Os erros são independentes
+
+### Estatística *t*
+
+A estatística *t* testa, a um certo nível de confiança, se o valor do parâmetro $\hat{\beta_j}$ é diferente de zero, isto é, testar se a variável $X_j$ tem alguma influência sobre o valor esperado de $Y$. Para isso, estabelece-se as seguintes hipóteses:
+
+\hipoteses{$\hat{\beta}_j=0$}{$\hat{\beta}_j \ne 0$}
+
+**Estatística do Teste**
+
+$$
+T=\frac{\hat{\beta}_j}{Var(\hat{\beta}_j)}
+$$
+
+Sob $H_0$, $T$ segue distribuição *t*-Student com $n-1$ graus de liberdade.
 
 ### Soma de Quadrados
 
@@ -956,7 +970,7 @@ ggplot(tipo_medalha, aes(x = Nome, y = Count, fill = Medalha)) +
 ```{=latex}
 \begin{quadro}[H]
 \centering
-\caption{Tabela dos Medalhistas e Distribuição das Medalhas}
+\caption{Quadro dos Medalhistas e Distribuição das Medalhas}
 \setlength{\tabcolsep}{9pt}
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{|c|c|c|c|c|}
@@ -995,7 +1009,7 @@ O teste de independência do qui-quadrado está sendo realizado para avaliar se 
 
 
 \begin{center}
-\hipoteses{A diferença entre homens e mulheres segue uma distribuição simétrica em torno de zero}{A diferença entre homens e mulheres não segue uma distribuição simétrica em torno de zero}
+\hipoteses{A diferença entre homens e mulheres segue uma distribuição simétrica em torno de zero.}{A diferença entre homens e mulheres não segue uma distribuição simétrica em torno de zero.}
 \end{center}
 
 
@@ -1220,7 +1234,7 @@ norm.pes.df <- data.frame(Statistic = norm.pes$statistic, P.Value = norm.pes$p.v
 ```
 
 \begin{center}
-\hipoteses{Os dados vêm de uma distribuição normal}{Os dados não vêm de uma distribuição normal}
+\hipoteses{Os dados vêm de uma distribuição normal.}{Os dados não vêm de uma distribuição normal.}
 \end{center}
 
 ```{=latex}
@@ -1322,6 +1336,10 @@ resutado_corre <- cor(olimpiadas_Alt_Pes$Peso, olimpiadas_Alt_Pes$Altura, method
 
 ```
 
+### Coeficiente de correlação de Pearson
+
+O coeficiente de correlação de Pearson é usado na regressão para quantificar a força e a direção da relação linear entre o peso e a altura. Ajuda a entender se um aumento no peso está associado ao aumento da altura, complementando a análise da relação entre essas variáveis.
+
 ```{=latex}
 \begin{quadro}[H]
 \centering
@@ -1375,6 +1393,8 @@ coeficientes_df <- as.data.frame(summary_modelo$coefficients)
 
 Para investigar a relação entre peso e altura, foi realizada uma análise de regressão linear que se encontra no **Quadro 11**, onde o peso foi ajustado em função da altura. O modelo ajustado revelou uma equação onde o peso aumenta conforme a altura aumenta. O coeficiente de regressão associado ao peso foi positivo e estatisticamente significativo, reforçando a ideia de que há uma relação positiva entre as duas variáveis.
 
+### Coeficiente de determinação (R²)
+
 ```{r}
 # Coeficiente de determinação (R²)
 resumo_modelo <- summary(modelo_simples)
@@ -1383,7 +1403,7 @@ resumo_modelo <- summary(modelo_simples)
 # Coeficiente de determinação (R²) ajustado
 r2_ajustado <- summary_modelo$adj.r.squared
 
-cat("Coeficiente de Determinação Ajustado (R² ajustado):", round(r2_ajustado, 4), "\n")
+#cat("Coeficiente de Determinação Ajustado (R² ajustado):", round(r2_ajustado, 4), "\n")
 ```
 
 O $R^2$ é utilizado na regressão para medir a proporção da variabilidade da variável resposta explicada pelo modelo. Ele permite avaliar a qualidade do ajuste entre o peso e a altura, indicando o grau de associação entre essas variáveis e a precisão do modelo.
@@ -1407,6 +1427,13 @@ O $R^2$ é utilizado na regressão para medir a proporção da variabilidade da 
 
 O coeficiente de determinação $R^2$, do **Quadro 12**, foi de aproximadamente 0,63. Isso indica que aproximadamente 63% da variação na altura pode ser explicada pela variação no peso dos atletas, considerando o modelo linear ajustado. Sugerindo assim uma associação significativa entre as variáveis. No entanto, há ainda 37% da variação na altura que não é explicada por esse modelo e pode estar relacionada a outros fatores ou variáveis que não foram incluídas nesta análise.
 
+### Teste F da Regressão Linear Simples
+
+O teste F de regressão é usado para avaliar a significância global do modelo, ou seja, verificar se o peso explica de forma significativa a variação na altura. 
+
+\begin{center}
+\hipoteses{O modelo de regressão não é significativo, ou seja, a variável peso não tem efeito significativo sobre a altura.}{O modelo de regressão é significativo, ou seja, a variável peso tem efeito significativo sobre a altura.}
+\end{center}
 
 ```{r, echo=FALSE}
 
@@ -1421,7 +1448,7 @@ O coeficiente de determinação $R^2$, do **Quadro 12**, foi de aproximadamente 
 ```{=latex}
 \begin{quadro}[H]
 \centering
-\caption{Resultado do Teste F da Regressão}
+\caption{P-valor do Teste F da Regressão}
 \setlength{\tabcolsep}{7pt}
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{|c|c|}
@@ -1435,7 +1462,7 @@ O coeficiente de determinação $R^2$, do **Quadro 12**, foi de aproximadamente 
 \end{quadro}
 ```
 
-O teste F realizado na regressão, que se encontra no **Quadro 13**, revelou um p-valor de < 0,001, indicando que o efeito da altura sobre o peso é estatisticamente significativo ao nível de 5%. Isso implica que a variação na altura dos atletas está significativamente associada a variações do peso, com uma probabilidade muito baixa de que essa associação seja devida ao acaso. Esse resultado nos permite concluir que há uma relação linear significativa entre as variáveis peso e altura para o conjunto de dados analisados. Contudo, é importante destacar que, embora a significância estatística indique uma associação, ela não revela a intensidade da relação, que pode ser observada pelo coeficiente de correlação de Pearson (0,79), além do coeficiente de determinação na análise de regressão.
+O teste F realizado na regressão, que se encontra no **Quadro 13**, revelou um p-valor de <0,001, indicando que o efeito da altura sobre o peso é estatisticamente significativo ao nível de 5%. Isso implica que a variação na altura dos atletas está significativamente associada a variações do peso, com uma probabilidade muito baixa de que essa associação seja devida ao acaso. Esse resultado nos permite concluir que há uma relação linear significativa entre as variáveis peso e altura para o conjunto de dados analisados. Contudo, é importante destacar que, embora a significância estatística indique uma associação, ela não revela a intensidade da relação, que pode ser observada pelo coeficiente de correlação de Pearson (0,79), além do coeficiente de determinação (0,63) na análise de regressão.
 
 
 
